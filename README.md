@@ -1,2 +1,2 @@
-# Shutgun_metagenomics_projects
+# Shotgun_metagenomics_projects
 Shotgun metagenomics projects
