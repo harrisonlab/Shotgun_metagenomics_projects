@@ -11,11 +11,11 @@ mkdir $PROJECT_FOLDER/data/normalised
 mkdir $PROJECT_FOLDER/data/merged
 
 #Adapter trimming (trimmomatic)
-for R1 in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
-  R2=$(echo $R1|sed 's/_1/_2/')
+for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c trim \
-  $R1 \
-  $R2 \
+  $FR \
+  $RR \
   $PROJECT_FOLDER/data/$RUN/trimmed \
   $PROJECT_FOLDER/metagenomics_pipeline/common/resources/adapters/truseq.fa \
   4
