@@ -16,7 +16,7 @@ for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c trim \
   $FR \
   $RR \
-  $PROJECT_FOLDER/data/$RUN/trimmed \
+  $PROJECT_FOLDER/data/trimmed \
   $PROJECT_FOLDER/metagenomics_pipeline/common/resources/adapters/truseq.fa \
   4
 done
