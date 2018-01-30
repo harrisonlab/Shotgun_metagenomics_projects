@@ -50,3 +50,18 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz; 
   minhits=2 \
   t=8
 done
+
+
+# normalition and error correction
+for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c normalise -p bbnorm \
+  $PROJECT_FOLDER/data/corrected \
+  $FR \
+  $RR  \
+  target=100 \
+  min=5 \
+  ecc=t \
+  passes=1 \
+  bits=16 prefilter
+done
