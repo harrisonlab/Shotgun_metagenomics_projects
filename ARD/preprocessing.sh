@@ -77,3 +77,8 @@ for FR in $PROJECT_FOLDER/data/corrected/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.
   t=12 \
   vstrict
 done  
+
+# rename files
+rename 's/_1.*[^n]merged/\.merged/' *.gz
+rename 's/_1.*unmerged/_1\.unmerged/' *.gz
+rename 's/_2.*unmerged/_2\.unmerged/' *.gz
