@@ -32,7 +32,8 @@ for FR in $PROJECT_FOLDER/data/trimmed/*_1.fq.gz.trimmed.fq.gz; do
   $FR \
   $RR \
   k=31 \
-  hdist=1
+  hdist=1 \
+  t=4
 done
 
 
