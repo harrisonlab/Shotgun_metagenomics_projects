@@ -68,3 +68,21 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cl
   passes=1 \
   bits=16 prefilter
 done
+
+# merge pairs 
+for FR in /data/scratch/deakig/metatranscriptomics/corrected/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz.corrected.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c merge -p bbmerge-auto \
+  /data/scratch/deakig/metatranscriptomics/merged \
+  $FR \
+  $RR  \
+  rem k=62 \
+  extend2=50 \
+  t=12 \
+  vstrict
+done  
+
+# rename files
+rename 's/_1.*[^n]merged/\.merged/' *.gz
+rename 's/_1.*unmerged/_1\.unmerged/' *.gz
+rename 's/_2.*unmerged/_2\.unmerged/' *.gz
