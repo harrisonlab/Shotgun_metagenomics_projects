@@ -54,3 +54,17 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz; 
   minhits=2 \
   t=8
 done
+
+# error correct and normalise (this was performed while there were write errors to /home hence output has gone to /Data drive
+for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c normalise -p bbnorm \
+  /data/scratch/deakig/metatranscriptomics/corrected \
+  $FR \
+  $RR  \
+  target=100 \
+  min=2 \
+  ecc=t \
+  passes=1 \
+  bits=16 prefilter
+done
