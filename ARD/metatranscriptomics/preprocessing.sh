@@ -12,10 +12,10 @@ mkdir $PROJECT_FOLDER/data/cleaned
 mkdir $PROJECT_FOLDER/data/corrected
 mkdir $PROJECT_FOLDER/data/merged
 
-#### Adapter trimming
+#### Adapter trimming (currently uses trimmomatic, could also use bbduk)
 for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
-  $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c trim \
+  $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c trim -p trimmomatic \
   $FR \
   $RR \
   $PROJECT_FOLDER/data/trimmed \
@@ -23,7 +23,7 @@ for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
   4
 done
 
-#### Synthetic construct/contaminant filtering 
+#### Synthetic construct/contaminant filtering + rRNA filter???
 for FR in $PROJECT_FOLDER/data/trimmed/*_1.fq.gz.trimmed.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c filter -p bbduk \
@@ -35,6 +35,7 @@ for FR in $PROJECT_FOLDER/data/trimmed/*_1.fq.gz.trimmed.fq.gz; do
   hdist=1 \
   t=4
 done
+
 
 
 #### Human contaminant removal (BBMap)
