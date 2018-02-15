@@ -13,7 +13,7 @@ mkdir $PROJECT_FOLDER/data/corrected
 mkdir $PROJECT_FOLDER/data/merged
 
 # adapter/phix/rrna filtering
-for FR in $PROJECT_FOLDER/data/trimmed/*_1.fq.gz.trimmed.fq.gz; do
+for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c MEGAFILT \
   $PROJECT_FOLDER/metatranscriptomics_pipeline/common/resources/adapters/truseq.fa \
@@ -26,7 +26,7 @@ done
 
 
 # Human contaminant removal (BBMap)
-for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz; do
+for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.filtered.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c filter -p bbmap \
   $PROJECT_FOLDER/metatranscriptomics_pipeline/common/resources/contaminants/bbmap_human \
@@ -43,8 +43,8 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz; 
   t=8
 done
 
-# error correct and normalise (this was performed while there were write errors to /home hence output has gone to /Data drive
-for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
+# error correct and normalise
+for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c normalise -p bbnorm \
   /data/scratch/deakig/metatranscriptomics/corrected \
@@ -58,7 +58,7 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cl
 done
 
 # merge pairs 
-for FR in /data/scratch/deakig/metatranscriptomics/corrected/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz.corrected.fq.gz; do
+for FR in /data/scratch/deakig/metatranscriptomics/corrected/*_1.fq.gz.filtered.fq.gz.cleaned.fq.gz.corrected.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c merge -p bbmerge-auto \
   /data/scratch/deakig/metatranscriptomics/merged \
@@ -70,7 +70,5 @@ for FR in /data/scratch/deakig/metatranscriptomics/corrected/*_1.fq.gz.trimmed.f
   vstrict
 done  
 
-# rename files
-rename 's/_1.*[^n]merged/\.merged/' *.gz
-rename 's/_1.*unmerged/_1\.unmerged/' *.gz
-rename 's/_2.*unmerged/_2\.unmerged/' *.gz
+# rename files (o.k this could have been implemeneted in each of the above scripts - maybe at some time)
+find $PROJECT_FOLDER/data -type f -n *.fq.gz|rename 's/(.*_[12]).*(\.[a-zA-Z]+\.fq\.gz$)/$1$2/'
