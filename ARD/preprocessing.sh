@@ -59,7 +59,7 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cl
   $FR \
   $RR  \
   target=100 \
-  min=5 \
+  min=2 \
   ecc=t \
   passes=1 \
   bits=16 prefilter
