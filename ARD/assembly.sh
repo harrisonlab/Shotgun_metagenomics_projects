@@ -1,5 +1,5 @@
 # metaspades
-for FR in $PROJECT_FOLDER/data/corrected/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz.corrected.fq.gz; do
+for FR in $PROJECT_FOLDER/data/corrected/*_1.corrected.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   PREFIX=$(grep -Po 'N[0-9]+.' <<<$FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c assemble -p metaspades \
@@ -23,7 +23,7 @@ for FR in $PROJECT_FOLDER/data/merged/*_1.unmerged.fq.gz; do
 done
 
 # megahit (using unmerged reads)
-for FR in $PROJECT_FOLDER/data/corrected/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz.corrected.fq.gz; do
+for FR in $PROJECT_FOLDER/data/corrected/*_1.corrected.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   MR=$(sed 's/_1\.un/\./' <<< $FR)
   PREFIX=$(grep -Po 'N[0-9]+.' <<<$FR)
