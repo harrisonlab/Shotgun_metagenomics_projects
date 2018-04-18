@@ -116,43 +116,63 @@ megahit -o output \
 --kmin-1pass \
 --out-prefix megahit_of_spades \
 --k-min=27 --k-step 20 --k-max 127 \
--r /home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N11S/N11S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N14H/N14H.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N14S/N14S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N1H/N1H.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N1S/N1S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N2H/N2H.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N2S/N2S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N3H/N3H.contigs.fa.gz,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit_of_spades/N4H/N4H.contigs.fa
+-r $PROJECT_FOLDER/data/assembled/megahit_of_spades/N11S/N11S.contigs.fa.gz,\
+$PROJECT_FOLDER/data/assembled/megahit_of_spades/N14H/N14H.contigs.fa.gz,\
+$PROJECT_FOLDER/data/assembled/megahit_of_spades/N14S/N14S.contigs.fa.gz,\
+$PROJECT_FOLDER/data/assembled/megahit_of_spades/N1H/N1H.contigs.fa.gz,\
+$PROJECT_FOLDERs/data/assembled/megahit_of_spades/N1S/N1S.contigs.fa.gz,\
+$PROJECT_FOLDER/data/assembled/megahit_of_spades/N2H/N2H.contigs.fa.gz,\
+$PROJECT_FOLDER/data/assembled/megahit_of_spades/N2S/N2S.contigs.fa.gz,\
+$PROJECT_FOLDER/data/assembled/megahit_of_spades/N3H/N3H.contigs.fa.gz,\
+$PROJECT_FOLDER/data/assembled/megahit_of_spades/N4H/N4H.contigs.fa
 
 megahit  -o output \
 -t 12 \
 --kmin-1pass \
 --out-prefix megahit \
 --k-min=27 --k-step 20 --k-max 127 \
--r /home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N11S/N11S.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N14H/N14H.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N14S/N14S.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N1H/N1H.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N1S/N1S.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N2H/N2H.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N2S/N2S.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N3H/N3H.contigs.fa,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/megahit/N4H/N4H.contigs.fa
+-r $PROJECT_FOLDER/data/assembled/megahit/N11S/N11S.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N14H/N14H.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N14S/N14S.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N1H/N1H.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N1S/N1S.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N2H/N2H.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N2S/N2S.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N3H/N3H.contigs.fa,\
+$PROJECT_FOLDER/data/assembled/megahit/N4H/N4H.contigs.fa
 
 megahit  -o output \
 -t 12 \
 --kmin-1pass \
 --out-prefix spades \
 --k-min=27 --k-step 20 --k-max 127 \
--r /home/deakig/projects/ARD/metagenomics/data/assembled/spades/N11S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N14H/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N14S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N1H/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N1S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N2H/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N2S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N3H/scaffolds.fasta,\
-/home/deakig/projects/ARD/metagenomics/data/assembled/spades/N4H/scaffolds.fasta
+-r $PROJECT_FOLDER/data/assembled/spades/N11S/scaffolds.fasta,\
+$PROJECT_FOLDER/data/assembled/spades/N14H/scaffolds.fasta,\
+$PROJECT_FOLDER/data/assembled/spades/N14S/scaffolds.fasta,\
+$PROJECT_FOLDER/data/assembled/spades/N1H/scaffolds.fasta,\
+/$PROJECT_FOLDER/data/assembled/spades/N1S/scaffolds.fasta,\
+$PROJECT_FOLDER/data/assembled/spades/N2H/scaffolds.fasta,\
+$PROJECT_FOLDER/data/assembled/spades/N2S/scaffolds.fasta,\
+$PROJECT_FOLDER/data/assembled/spades/N3H/scaffolds.fasta,\
+$PROJECT_FOLDER/data/assembled/spades/N4H/scaffolds.fasta
+
+# CAP 3 assembly - note cap3 can only assembleupto about 1G file size
+
+Cap3 input.fa 
+mv input.contigs.fa $PROJECT_FOLDER/data/assembled/Final.fa
+
+# Align with Salmnon
+salmon index -t $PROJECT_FOLDER/data/Final.contigs -i $PROJECT_FOLDER/data/SALMON_idx
+
+for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
+ RR=$(echo $FR|sed 's/_1/_2/')
+ OUTDIR=$(echo $FR|awk -F"/" '{print $NF}'|sed 's/_.*//')
+ $PROJECT_FOLDER/RNA-seq_pipeline/scripts/PIPELINE.sh -c salmon \
+ $PROJECT_FOLDER/data/assembled/SALMON_idx \
+ $PROJECT_FOLDER/data/counts/$OUTDIR \
+ $FR $RR \
+ --numBootstraps 1000 --dumpEq --seqBias --gcBias --writeUnmappedNames
+done
+# --writeMappings=test.sam
+
 
