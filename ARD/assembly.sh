@@ -177,19 +177,3 @@ done
 
 
 
-# assemble assemlies
- megahit -o output -t 20 --kmin-1pass --out-prefix all_spades --k-min=27 --k-step 20 --k-max 127 -r \
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/spades/M1S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/spades/M2S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/spades/M4S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/spades/M4H/scaffolds.fasta,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/spades/M11S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/spades/M14S/scaffolds.fasta,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/spades/M14H/scaffolds.fasta,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/megahit_of_spades/M1S/M1S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/megahit_of_spades/M2S/M2S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/megahit_of_spades/M4S/M4S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/megahit_of_spades/M4H/M4H.contigs.fa.gz,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/megahit_of_spades/M11S/M11S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/megahit_of_spades/M14S/M14S.contigs.fa.gz,\
-/home/deakig/projects/ARD/metatranscriptomics/data/assembled/megahit_of_spades/M14H/M14H.contigs.fa.gz &
