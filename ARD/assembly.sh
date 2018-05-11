@@ -161,19 +161,4 @@ $PROJECT_FOLDER/data/assembled/spades/N4H/scaffolds.fasta
 Cap3 input.fa 
 mv input.contigs.fa $PROJECT_FOLDER/data/assembled/Final.fa
 
-# Align with Salmnon
-salmon index -t $PROJECT_FOLDER/data/Final.contigs -i $PROJECT_FOLDER/data/SALMON_idx
-
-for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
- RR=$(echo $FR|sed 's/_1/_2/')
- OUTDIR=$(echo $FR|awk -F"/" '{print $NF}'|sed 's/_.*//')
- $PROJECT_FOLDER/RNA-seq_pipeline/scripts/PIPELINE.sh -c salmon \
- $PROJECT_FOLDER/data/assembled/SALMON_idx \
- $PROJECT_FOLDER/data/counts/$OUTDIR \
- $FR $RR \
- --numBootstraps 1000 --dumpEq --seqBias --gcBias --writeUnmappedNames
-done
-# --writeMappings=test.sam
-
-
 
