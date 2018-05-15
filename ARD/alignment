@@ -1,3 +1,4 @@
+```shell
 # Create Salmon index
 salmon index -t $PROJECT_FOLDER/data/Final.contigs -i $PROJECT_FOLDER/data/SALMON_idx
 
@@ -14,6 +15,10 @@ done
 # --writeMappings=test.sam
 
 # get "transcript" names
-awk -F"\t" '{c=$1;sub("\..*","",$1);print c,$1}' OFS="\t" N11S/quant.sf
+awk -F"\t" '{c=$1;sub("\..*","",$1);print c,$1}' OFS="\t" N11S/quant.sf > gene_names.txt
+```
+```R
 
+
+```
 
