@@ -2,34 +2,23 @@
 mkdir -p ~/projects/Oak_decline/metagenomics/data
 $PROJECT_FOLDER=~/projects/Oak_decline/metagenomics
 ln -s ~/pipelines/metagenomics $PROJECT_FOLDER/metagenomics_pipeline
+ln -s ~/pipelines/metatranscriptomics $PROJECT_FOLDER/metatranscriptomics_pipeline
 
 mkdir $PROJECT_FOLDER/data/fastq
 mkdir $PROJECT_FOLDER/data/trimmed
 mkdir $PROJECT_FOLDER/data/filtered
 mkdir $PROJECT_FOLDER/data/normalised
 
-#Adapter trimming (trimmomatic)
+# adapter/phix/filtering
 for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c trim \
-  $FR \
-  $RR \
-  $PROJECT_FOLDER/data/trimmed \
-  $PROJECT_FOLDER/metagenomics_pipeline/common/resources/adapters/truseq.fa \
-  4
-done
-
-# phix filter
-for FR in $PROJECT_FOLDER/data/trimmed/*_1.fq.gz.trimmed.fq.gz; do
-  RR=$(sed 's/_1/_2/' <<< $FR)
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c filter -p bbduk \
-  $PROJECT_FOLDER/metagenomics_pipeline/common/resources/contaminants/phix_174.fa \
+  $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c MEGAFILT \
+  $PROJECT_FOLDER/metatranscriptomics_pipeline/common/resources/adapters/truseq.fa \
+  $PROJECT_FOLDER/metatranscriptomics_pipeline/common/resources/contaminants/phix_174.fa \
   $PROJECT_FOLDER/data/filtered \
   $FR \
-  $RR  \
-  k=31 \
-  hdist=1
-done
+  $RR
+done  
 
 # human contaminant filter
 for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz; do
@@ -49,7 +38,7 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz; 
   t=8
 done
 
-# normalition and error correction
+# normalition and error correction - normalisation may not be necessary
 for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c normalise -p bbnorm \
@@ -63,20 +52,3 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cl
   bits=16 prefilter
 done
 
-# merge pairs 
-for FR in $PROJECT_FOLDER/data/corrected/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz.corrected.fq.gz; do
-  RR=$(sed 's/_1/_2/' <<< $FR)
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c merge -p bbmerge-auto \
-  $PROJECT_FOLDER/data/merged \
-  $FR \
-  $RR  \
-  rem k=62 \
-  extend2=50 \
-  t=12 \
-  vstrict
-done  
-
-# rename files
-rename 's/_1.*[^n]merged/\.merged/' *.gz
-rename 's/_1.*unmerged/_1\.unmerged/' *.gz
-rename 's/_2.*unmerged/_2\.unmerged/' *.gz
