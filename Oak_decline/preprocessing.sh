@@ -1,6 +1,6 @@
 # add project folders
 mkdir -p ~/projects/Oak_decline/metagenomics/data
-$PROJECT_FOLDER=~/projects/Oak_decline/metagenomics
+PROJECT_FOLDER=~/projects/Oak_decline/metagenomics
 ln -s ~/pipelines/metagenomics $PROJECT_FOLDER/metagenomics_pipeline
 ln -s ~/pipelines/metatranscriptomics $PROJECT_FOLDER/metatranscriptomics_pipeline
 
