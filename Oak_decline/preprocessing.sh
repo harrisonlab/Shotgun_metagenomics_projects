@@ -15,9 +15,11 @@ for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
   $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c MEGAFILT \
   $PROJECT_FOLDER/metatranscriptomics_pipeline/common/resources/adapters/truseq.fa \
   $PROJECT_FOLDER/metatranscriptomics_pipeline/common/resources/contaminants/phix_174.fa \
+  NOTHING \
   $PROJECT_FOLDER/data/filtered \
   $FR \
-  $RR
+  $RR \
+  false
 done  
 
 # human contaminant filter
