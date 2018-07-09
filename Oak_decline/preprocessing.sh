@@ -23,7 +23,7 @@ for FR in $PROJECT_FOLDER/data/fastq/*_1.fq.gz; do
 done  
 
 # human contaminant filter
-for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz; do
+for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.filtered.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c filter -p bbmap \
   $PROJECT_FOLDER/metagenomics_pipeline/common/resources/contaminants/bbmap_human \
