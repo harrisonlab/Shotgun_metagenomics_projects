@@ -26,10 +26,11 @@ done
 for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.filtered.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c filter -p bbmap \
-  $PROJECT_FOLDER/metagenomics_pipeline/common/resources/contaminants/bbmap_human \
+  $PROJECT_FOLDER/metagenomics_pipeline/common/resources/contaminants/bbmap_human/hg19_main_mask_ribo_animal_allplant_allfungus.fa \
   $PROJECT_FOLDER/data/cleaned \
   $FR \
   $RR \
+  path=$PROJECT_FOLDER/metagenomics_pipeline/common/resources/contaminants/bbmap_human \
   minid=0.95 \
   maxindel=3 \
   bwr=0.16 \
@@ -37,7 +38,7 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.filtered.fq.gz; do
   quickmatch \
   fast \
   minhits=2 \
-  t=8
+  t=4
 done
 
 # normalition and error correction - normalisation may not be necessary
