@@ -55,3 +55,7 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.filtered.fq.gz.cleaned.fq.gz; d
   bits=16 prefilter
 done
 
+# rename files (should get the scripts to name them correctly...)
+rename 's/\.filtered.* //' $PROJECT_FOLDER/data/filtered
+rename 's/\.filtered.* //' $PROJECT_FOLDER/data/cleaned
+rename 's/\.filtered.* //' $PROJECT_FOLDER/data/corrected
