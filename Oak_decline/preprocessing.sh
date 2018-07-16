@@ -42,7 +42,7 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.filtered.fq.gz; do
 done
 
 # normalition and error correction - normalisation may not be necessary
-for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.trimmed.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
+for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c normalise -p bbnorm \
   $PROJECT_FOLDER/data/corrected \
