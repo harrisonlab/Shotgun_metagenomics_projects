@@ -38,7 +38,7 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.filtered.fq.gz; do
   quickmatch \
   fast \
   minhits=2 \
-  t=4
+  t=12
 done
 
 # normalition and error correction - normalisation may not be necessary
