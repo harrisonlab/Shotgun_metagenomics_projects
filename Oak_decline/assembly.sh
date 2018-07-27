@@ -54,7 +54,7 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c assemble -p megahit
 12 blacklace11.blacklace \
 $PROJECT_FOLDER/data/assembled/megahit \
 SPECULATION \
--m 12 -1 $f -2 $r --k-min=27 --k-step 10 --k-max 127
+-m 0.5 -1 $f -2 $r --k-min=27 --k-step 10 --k-max 127
 
 # Winding
 f=$(ls -m $PROJECT_FOLDER/data/corrected/W*_1.fq.gz|tr -d ' '|tr -d '\n')
