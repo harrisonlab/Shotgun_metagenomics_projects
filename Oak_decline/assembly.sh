@@ -1,3 +1,17 @@
+## Single assemblies - below taking too long
+for FR in $PROJECT_FOLDER/data/corrected/*_1.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  PREFIX=$(sed 's/_1\.fq.*//' <<<$FR|sed 's/.*\///')
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c assemble -p metaspades2 \
+  10 blacklace[0-1][0-9].blacklace \
+  $PROJECT_FOLDER/data/assembled \
+  $FR \
+  $RR  \
+  $PREFIX \
+  -k 21,33,55,77
+done
+
+
 # To speed up assembly cutting data into site specific and assembling with megahit (accepts multiple fq input)
 # but needs minimum of 40Gb memory (upped min kmer to 31, still required 34Gb with the smallest dataset - annoying)
 
