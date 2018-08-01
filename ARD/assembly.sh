@@ -48,7 +48,7 @@ done
 
 # assemblies are compressed, bbmap requires them to be uncompressed for alignment
 cd $PROJECT_FOLDER/data/assembly
-Find . -maxdepth=3 type=f -name *.gz|xargs -I% pigz -dp 4 %
+find . -maxdepth=3 type=f -name *.gz|xargs -I% pigz -dp 4 %
 
 # align reads to assembly - spades
 for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
