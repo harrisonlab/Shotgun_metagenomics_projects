@@ -86,7 +86,7 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
   t=8
 done
 
-# align unaligned megahit with spades
+# assemble unaligned megahit with spades
 for FR in $PROJECT_FOLDER/data/assembly_checks/megahit/*_1.cleaned.fq.gz.cleaned.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   PREFIX=$(grep -Po 'N[0-9]+.' <<<$FR) #this line is specific to the file naming convention
