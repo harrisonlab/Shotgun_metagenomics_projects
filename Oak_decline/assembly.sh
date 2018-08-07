@@ -81,39 +81,37 @@ WINDING \
 
 
 # align reads to assembly - BIGWOOD
-for FR in $PROJECT_FOLDER/data/corrected/B*_1.fq.gz; do
+PREFIX=BIGWOOD
+for FR in $PROJECT_FOLDER/data/fastq/B*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
-  PREFIX=BIGWOOD
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c filter -p bbmap \
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
+  16 blacklace[01][0-9].blacklace \
+  $PROJECT_FOLDER/data/assembled/aligned/megahit \
+  $PREFIX \
   $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa \
-  $PROJECT_FOLDER/data/assembled/unassembled/megahit \
   $FR \
   $RR \
-  nodisk=t \
-  kfilter=22 \
-  subfilter=15 \
-  maxindel=80 \
+  maxindel=100 \
   unpigz=t \
   touppercase=t \
-  t=10
+  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/
 done
 
 # align reads to assembly - WINDING
-for FR in $PROJECT_FOLDER/data/corrected/W*_1.fq.gz; do
+PREFIX=WINDING
+for FR in $PROJECT_FOLDER/data/fastq/B*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
-  PREFIX=WINDING
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c filter -p bbmap \
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
+  16 blacklace[01][0-9].blacklace \
+  $PROJECT_FOLDER/data/assembled/aligned/megahit \
+  $PREFIX \
   $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa \
-  $PROJECT_FOLDER/data/assembled/unassembled/megahit \
   $FR \
   $RR \
-  nodisk=t \
-  kfilter=22 \
-  subfilter=15 \
-  maxindel=80 \
+  maxindel=100 \
   unpigz=t \
   touppercase=t \
-  t=10
+  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/
 done
 
 
