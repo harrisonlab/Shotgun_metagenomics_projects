@@ -24,7 +24,9 @@ find -type f -name X.pep|xargs -I% cat % >$PREFIX.pep
 find -type f -name X.hmmout|head -n1|xargs -I% head -n3 % >$PREFIX.hmmout   
 find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
 find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
- 
+
+grep -v "#" BIGWOOD.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > BIGWOOD.hmm.cut
+
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap + HirBin tools to get BAM in correct format
 # align reads to assembly - will need to index first
