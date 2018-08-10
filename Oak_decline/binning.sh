@@ -26,6 +26,7 @@ find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
 find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
 grep -v "#" BIGWOOD.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > BIGWOOD.hmm.cut
+awk -F"\t" '{print $1}' BIGWOOD.hmm.cut|sort|uniq > BIGWOOD.domains
 
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap + HirBin tools to get BAM in correct format
