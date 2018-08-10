@@ -1,5 +1,7 @@
 # functional binning with HirBin
 # I've had to hack some of the HirBin scripts (specifically clusterbinstosubbins.py) as it doesn't work in current format
+# also it uses usearch for clustering, while this is good the free 32bit version will almost certainly run out of memory for any sort of 
+# soil metagenome assembly. I will probably change this to use vsearch which will give output the same as usearch
 
 # HirBin does an hmm alignment of an assembly to a protein domain database 
 # this will take a looong time unless the assembly and preferbly the hmm database is divided into chunks
@@ -44,3 +46,7 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ usemodulo=T k=11
 done
  
+# create bed coverage files from bam outputs
+bedtools coverage -bbam XXX.bam -a $PREFIX.gff -counts > XXX.cov
+
+
