@@ -25,5 +25,20 @@ find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
  
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap + HirBin tools to get BAM in correct format
- 
+# align reads to assembly - will need to index first
+P1=${PREFIX:0:1}
+for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
+  16 blacklace[01][0-9].blacklace \
+  $PROJECT_FOLDER/data/assembled/aligned/megahit \
+  $PREFIX \
+  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa \
+  $FR \
+  $RR \
+  maxindel=100 \
+  unpigz=t \
+  touppercase=t \
+  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/
+done
  
