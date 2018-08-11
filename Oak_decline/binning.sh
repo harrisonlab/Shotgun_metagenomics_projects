@@ -31,7 +31,7 @@ awk -F"\t" '{print $1}' BIGWOOD.hmm.cut|sort|uniq > BIGWOOD.domains
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap + HirBin tools to get BAM in correct format
 # align reads to assembly - will need to index first
-bbmap ref=$PREFIX.contigs.fa.gz usemodulo=T k=11
+bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=T #k=11
 
 P1=${PREFIX:0:1}
 for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
@@ -46,7 +46,7 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   maxindel=100 \
   unpigz=t \
   touppercase=t \
-  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ usemodulo=T k=11
+  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ usemodulo=T 
 done
  
 # create bed coverage files from bam outputs
