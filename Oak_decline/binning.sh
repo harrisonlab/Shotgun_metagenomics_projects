@@ -60,4 +60,11 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/data/assembled/aligned/megahit
 done
 
-# convert coverage to required tab format (using python scripts)
+# convert coverage to required tab format (using python script)
+# parseCoverageBed("XXX.cov","XXX.tab")
+for COV in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.cov; do
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cov_bed \
+  blacklace[01][0-9].blacklace \
+  $COV \
+  $PROJECT_FOLDER/data/assembled/aligned/megahit
+done
