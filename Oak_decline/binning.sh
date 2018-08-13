@@ -59,3 +59,5 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.gff \
   $PROJECT_FOLDER/data/assembled/aligned/megahit
 done
+
+# convert coverage to required tab format (using python scripts)
