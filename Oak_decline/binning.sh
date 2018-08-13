@@ -50,6 +50,12 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
 done
  
 # create bed coverage files from bam outputs
-bedtools coverage -bbam XXX.bam -a $PREFIX.gff -counts > XXX.cov
+# bedtools coverage -bbam XXX.bam -a $PREFIX.gff -counts > XXX.cov
 
-
+for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bedtools \
+  blacklace[01][0-9].blacklace \
+  $BAM \
+  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/assembled/aligned/megahit
+done
