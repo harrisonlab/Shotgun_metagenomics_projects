@@ -12,7 +12,7 @@
 #functionalAnnotation.py -m METADATA_FILE -db DATABASE_FILE -e EVALUE_CUTOFF -n N -p MAX_ACCEPTABLE_OVERLAP
 PREFIX=BIGWOOD
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
-  1 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
+ 1 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
  $PREFIX.contigs.fa \
  ~/pipelines/common/resources/pfam/Pfam-A.hmm \
  -e 1e-03
@@ -60,11 +60,18 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/data/assembled/aligned/megahit
 done
 
+# alternative coverage method - above is very slow probably due to the v. large gff
+# probably be faster to cut gff into much smaller segments and run bedtools against each chunck
+
+
 # convert coverage to required tab format (using python script)
+ awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" test.cov
 # parseCoverageBed("XXX.cov","XXX.tab")
-for COV in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.cov; do
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cov_bed \
-  blacklace[01][0-9].blacklace \
-  $COV \
-  $PROJECT_FOLDER/data/assembled/aligned/megahit
-done
+#for COV in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.cov; do
+#  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cov_bed \
+#  blacklace[01][0-9].blacklace \
+#  $COV \
+#  $PROJECT_FOLDER/data/assembled/aligned/megahit
+#done
+
+
