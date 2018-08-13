@@ -40,7 +40,7 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   16 blacklace[01][0-9].blacklace \
   $PROJECT_FOLDER/data/assembled/aligned/megahit \
   $PREFIX \
-  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa \
+  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa.gz \
   $FR \
   $RR \
   maxindel=100 \
