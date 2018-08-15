@@ -48,16 +48,18 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   touppercase=t \
   path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ usemodulo=T 
 done
- 
-# create bed coverage files from bam outputs
-# bedtools coverage -bbam XXX.bam -a $PREFIX.gff -counts > XXX.cov
+
+# bedtools code is inefficient at getting over-lapping counts - I've written something in perl which is way less memory hungry and takes about a millionth of the time to run
+# output is not a cov file but just counts per domain - not certain the sub-binning is worth while (could modify bam_count to return a cov/tab file to implement this step)
+# takes about ten minutes on a single core to run, could easily get it to produce a cov file
+samtools view bam_file|~/pipelines/metagenomics/scripts/bam_count.pl $PREFIX.gff > bam_file.txt
 
 for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bedtools \
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
   blacklace[01][0-9].blacklace \
   $BAM \
   $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.gff \
-  $PROJECT_FOLDER/data/assembled/aligned/megahit
+  $PROJECT_FOLDER/data/assembled/counts/megahit
 done
 
 # alternative coverage method - above is very slow probably due to the v. large gff
