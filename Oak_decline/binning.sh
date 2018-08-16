@@ -55,6 +55,7 @@ done
 # bedtools code is inefficient at getting over-lapping counts - I've written something in perl which is way less memory hungry and takes about a millionth of the time to run
 # output is not a cov file but just counts per domain - not certain the sub-binning is worth while (could modify bam_count to return a cov/tab file to implement this step)
 # takes about ten minutes on a single core to run, could easily get it to produce a cov file
+# bam_scaffold_count.pl will output a cov file rather than counts per domain
 samtools view bam_file|~/pipelines/metagenomics/scripts/bam_count.pl $PREFIX.gff > bam_file.txt
 
 for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
@@ -65,18 +66,19 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/data/assembled/counts/megahit
 done
 
-# alternative coverage method - above is very slow probably due to the v. large gff
-# probably be faster to cut gff into much smaller segments and run bedtools against each chunck
 
+# Sub binning - if required
+# I've hacked around with a few of the HirBin settings which will need editing back
+# ParsePFamTGRFAM.py accepts a chopped up version of the hhmout output + plus the domains in a seperate file
+# This was done for speed reasons - could probably use something similar to bam_count, if I can get it to work under python
+# also the hmm file is better if cut to include only the necessary fields (prevents having to do various checking) 
+# will require a cov file from bam_scaffold_count.pl
+awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" $PREFIX.cov > $PREFIX.tab
+grep "#" -v $PREFIX.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.cut.hmm
+cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.domains # the tail bit gets rid of the first line of output
+# then create the required metadata file
+echo -e \
+"Name\tGroup\tReference\tAnnotation\tCounts\n"\
+"$PREFIX\tSTATUS\t$PREFIX.pep\t$PREFIX.hmm.cut\tEMPTY" > metadata.txt
 
-# convert coverage to required tab format (using python script)
- awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" test.cov
-# parseCoverageBed("XXX.cov","XXX.tab")
-#for COV in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.cov; do
-#  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cov_bed \
-#  blacklace[01][0-9].blacklace \
-#  $COV \
-#  $PROJECT_FOLDER/data/assembled/aligned/megahit
-#done
-
-
+clusterBinsToSubbins.py -m metadata.txt -id 0.7 -n 12 --onlyClustering  # this will probably take a while (days?) to run
