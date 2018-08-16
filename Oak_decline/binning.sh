@@ -1,3 +1,6 @@
+PREFIX=BIGWOOD # and etc.
+P1=${PREFIX:0:1}
+
 # functional binning with HirBin
 # I've had to hack some of the HirBin scripts (specifically clusterbinstosubbins.py) as it doesn't work in current format
 # also it uses usearch for clustering, while this is good the free 32bit version will almost certainly run out of memory for any sort of 
@@ -10,7 +13,7 @@
 
 # annotate uses functionalAnnotaion.py, but splits input file into 20,000 droid chunks for running on cluster (25 concurrent jobs)
 #functionalAnnotation.py -m METADATA_FILE -db DATABASE_FILE -e EVALUE_CUTOFF -n N -p MAX_ACCEPTABLE_OVERLAP
-PREFIX=BIGWOOD
+
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
  1 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
  $PREFIX.contigs.fa \
@@ -33,7 +36,7 @@ awk -F"\t" '{print $1}' BIGWOOD.hmm.cut|sort|uniq > BIGWOOD.domains
 # align reads to assembly - will need to index first
 bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=T #k=11
 
-P1=${PREFIX:0:1}
+
 for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
