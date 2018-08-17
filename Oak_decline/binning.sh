@@ -30,6 +30,7 @@ find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
 grep -v "#" $PREFIX.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.hmm.cut
 awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains
+cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.domains # the tail bit gets rid of the first line of output
 
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap
@@ -57,14 +58,16 @@ done
 # output is not a cov file but just counts per domain - not certain the sub-binning is worth while (could modify bam_count to return a cov/tab file to implement this step)
 # takes about ten minutes on a single core to run, could easily get it to produce a cov file
 # bam_scaffold_count.pl will output a cov file rather than counts per domain
-samtools view bam_file|~/pipelines/metagenomics/scripts/bam_count.pl $PREFIX.gff > bam_file.txt
+samtools view bam_file|~/pipelines/metagenomics/scripts/bam_scaffold_count.pl $PREFIX.gff > bam_counts.txt
+samtools view bam_file|~/pipelines/metagenomics/scripts/bam_scaffold_count.pl $PREFIX.gff cov> bam_file.cov
 
 for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
   blacklace[01][0-9].blacklace \
   $BAM \
   $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.gff \
-  $PROJECT_FOLDER/data/assembled/counts/megahit
+  $PROJECT_FOLDER/data/assembled/counts/megahit \
+  cov
 done
 
 
@@ -72,8 +75,6 @@ done
 # I've hacked around with a few of the HirBin settings - for speed mostly and for consistency (or the lack of) in domain names
 # will require a cov file from bam_scaffold_count.pl
 awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" $PREFIX.cov > $PREFIX.tab
-grep "#" -v $PREFIX.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.cut.hmm
-cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.domains # the tail bit gets rid of the first line of output
 # then create the required metadata file
 echo -e \
 "Name\tGroup\tReference\tAnnotation\tCounts\Domain\n"\
