@@ -28,14 +28,13 @@ find -type f -name X.hmmout|head -n1|xargs -I% head -n3 % >$PREFIX.hmmout
 find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
 find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
-grep -v "#" BIGWOOD.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > BIGWOOD.hmm.cut
-awk -F"\t" '{print $1}' BIGWOOD.hmm.cut|sort|uniq > BIGWOOD.domains
+grep -v "#" $PREFIX.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.hmm.cut
+awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains
 
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap
 # align reads to assembly - will need to index first
 bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=T #k=11
-
 
 for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
