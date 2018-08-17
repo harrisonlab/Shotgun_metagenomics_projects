@@ -81,10 +81,11 @@ cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.domains # the t
 # then create the required metadata file
 echo -e \
 "Name\tGroup\tReference\tAnnotation\tCounts\Domain\n"\
-"$PREFIX\tSTATUS\t$PREFIX.pep\t$PREFIX.hmm.cut\t$PREFIX.tab\t$PREFIX.domains" > metadata.txt
+"$PREFIX\tSTATUS\t$PREFIX.pep\t$PREFIX.hmm.cut\tEMPTY\t$PREFIX.domains" > metadata.txt
 
 clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering  # this will create the sub bins
 clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing # this will make count files for $PREFIX.tab to the bins and sub bins 
 clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering # recluster at a different identity plus parsing
 clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering --onlyClustering # as above but without the parsing
 
+# for parsing the metadata file will need to be modified to include the sample tab files - one per line
