@@ -70,10 +70,7 @@ done
 
 
 # Sub binning - if required
-# I've hacked around with a few of the HirBin settings
-# ParsePFamTGRFAM.py accepts a chopped up version of the hhm output and the domains in a seperate file
-# This was done for speed reasons - could probably use something similar to bam_count, if I can get it to work under python
-# also the hmm file is better if cut to include only the necessary fields (prevents having to do various checking) 
+# I've hacked around with a few of the HirBin settings - for speed mostly and for consistency (or the lack of) in domain names
 # will require a cov file from bam_scaffold_count.pl
 awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" $PREFIX.cov > $PREFIX.tab
 grep "#" -v $PREFIX.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.cut.hmm
