@@ -53,7 +53,8 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   usemodulo=T 
 done
 
-# bedtools code is inefficient at getting over-lapping counts - I've written something in perl which is way less memory hungry and takes about a millionth of the time to run
+# bedtools code is inefficient at getting over-lapping counts (if min overlap is set to 1)
+# I've written something in perl which is way less memory hungry and takes about a millionth of the time to run
 # output is not a cov file but just counts per domain - not certain the sub-binning is worth while (could modify bam_count to return a cov/tab file to implement this step)
 # takes about ten minutes on a single core to run, could easily get it to produce a cov file
 # bam_scaffold_count.pl will output a cov file rather than counts per domain
@@ -69,8 +70,8 @@ done
 
 
 # Sub binning - if required
-# I've hacked around with a few of the HirBin settings which will need editing back
-# ParsePFamTGRFAM.py accepts a chopped up version of the hhmout output + plus the domains in a seperate file
+# I've hacked around with a few of the HirBin settings
+# ParsePFamTGRFAM.py accepts a chopped up version of the hhm output and the domains in a seperate file
 # This was done for speed reasons - could probably use something similar to bam_count, if I can get it to work under python
 # also the hmm file is better if cut to include only the necessary fields (prevents having to do various checking) 
 # will require a cov file from bam_scaffold_count.pl
@@ -79,7 +80,11 @@ grep "#" -v $PREFIX.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $
 cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.domains # the tail bit gets rid of the first line of output
 # then create the required metadata file
 echo -e \
-"Name\tGroup\tReference\tAnnotation\tCounts\n"\
-"$PREFIX\tSTATUS\t$PREFIX.pep\t$PREFIX.hmm.cut\tEMPTY" > metadata.txt
+"Name\tGroup\tReference\tAnnotation\tCounts\Domain\n"\
+"$PREFIX\tSTATUS\t$PREFIX.pep\t$PREFIX.hmm.cut\t$PREFIX.tab\t$PREFIX.domains" > metadata.txt
 
-clusterBinsToSubbins.py -m metadata.txt -id 0.7 -n 12 --onlyClustering  # this will probably take a while (days?) to run
+clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering  # this will create the sub bins
+clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing # this will make count files for $PREFIX.tab to the bins and sub bins 
+clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering # recluster at a different identity plus parsing
+clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering --onlyClustering # as above but without the parsing
+
