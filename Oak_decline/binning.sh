@@ -57,7 +57,7 @@ done
 # I've written something in perl which is way less memory hungry and takes about a millionth of the time to run
 # output is not a cov file but just counts per domain - not certain the sub-binning is worth while (could modify bam_count to return a cov/tab file to implement this step)
 # takes about ten minutes on a single core to run, could easily get it to produce a cov file
-# bam_scaffold_count.pl will output a cov file rather than counts per domain
+# bam_scaffold_count.pl will output a cov file rather than counts per domain, it is memory hungry ~10G for large (>2G) gff files
 samtools view bam_file|~/pipelines/metagenomics/scripts/bam_scaffold_count.pl $PREFIX.gff > bam_counts.txt
 samtools view bam_file|~/pipelines/metagenomics/scripts/bam_scaffold_count.pl $PREFIX.gff cov> bam_file.cov
 
@@ -70,6 +70,7 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   cov
 done
 
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.cov" "$PREFIX.countData"
 
 # Sub binning - if required
 # I've hacked around with a few of the HirBin settings - for speed mostly and for consistency (or the lack of) in domain names
