@@ -37,11 +37,33 @@ colData <- colData[SampleID%in%names(countData),]
 annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
 
 #===============================================================================
+#       Pool Data/subsample
+#===============================================================================
+
+dds <- DESeqDataSetFromMatrix(dt_to_df(countData), dt_to_df(colData), ~1)
+
+# get number of samples per tree
+sample_numbers <- table(sub("[A-Z]$","",dds$Sample))
+
+# collapse (mean) samples
+dds <- collapseReplicates2(dds,groupby=dds$Sample,simple=T)
+
+# set the dds sizefactor to the number of samples
+# dds$sizeFactor <- as.vector(sample_numbers/2)
+
+# recreate countData and colData
+countData<- round(counts(dds,normalize=T),0)
+colData <- as.data.frame(colData(dds))
+
+# new dds object with the corrected data set
+dds <- DESeqDataSetFromMatrix(countData,colData,~1)
+
+#===============================================================================
 #       Differential analysis
 #===============================================================================
 
 # create dds object
-dds <- DESeqDataSetFromMatrix(dt_to_df(countData), dt_to_df(colData), ~1)
+# dds <- DESeqDataSetFromMatrix(dt_to_df(countData), dt_to_df(colData), ~1)
 
 # get size factors
 sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
@@ -50,10 +72,11 @@ sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
 alpha <- 0.1
 
 # the full model
-design <- ~Status
+design <- ~Block_pair+Status
 
 # set any columns used in model to be factors (deseq should really do this internally...)
 dds$Status <- as.factor(dds$Status)
+dds$Block_pair <- as.factor(dds$Block_pair)
 
 # add full model to dds object
 design(dds) <- design
