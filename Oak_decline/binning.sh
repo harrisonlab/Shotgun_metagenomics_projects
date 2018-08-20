@@ -30,7 +30,7 @@ find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
 grep -v "#" $PREFIX.hmmout|awk -F" " '{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.hmm.cut
 awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains
-cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.domains # the tail bit gets rid of the first line of output
+cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2|grep -e  "^[^A-Za-z0-9]" -v > $PREFIX.domains # the tail bit gets rid of the first line of output an d the grep removes errors in the output
 
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap
