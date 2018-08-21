@@ -81,9 +81,13 @@ echo -e \
 "Name\tGroup\tReference\tAnnotation\tCounts\Domain\n"\
 "$PREFIX\tSTATUS\t$PREFIX.pep\t$PREFIX.hmm.cut\tEMPTY\t$PREFIX.domains" > metadata.txt
 
-clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering  # this will create the sub bins
-clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing # this will make count files for $PREFIX.tab to the bins and sub bins 
-clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering # recluster at a different identity plus parsing
-clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering --onlyClustering # as above but without the parsing
+# The extractSequences module of clusterBinsToSubbins is inpractical for large pep files - the R script subbin_fasta_extractor.R should be used in it's palace
+
+Rscript subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep $PREFIX_hirbin_output
+# clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering -f -o  $PREFIX_hirbin_output # this will create the sub bins - use subbin_fasta_extractor in preference to this 
+clusterBinsToSubbins.py -m metadata.txt -id 0.7 --reClustering --onlyClustering -f -o  $PREFIX_hirbin_output# clustering without sub bin extraction (no parsing)
+clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_hirbin_output# recluster at a different identity plus parsing
+clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing -f -o  $PREFIX_hirbin_output# this will make count files for $PREFIX.tab to the bins and sub bins 
+
 
 # for parsing the metadata file will need to be modified to include the sample tab files - one per line
