@@ -28,14 +28,14 @@ find -type f -name X.hmmout|head -n1|xargs -I% head -n3 % >$PREFIX.hmmout
 find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
 find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
-grep -v "#" $PREFIX.hmmout|awk -F" " '$21~/^[0-9]+$/{print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.hmm.cut
-awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains
-cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.domains # the tail bit gets rid of the first line of output an d the grep removes errors in the output
+grep -v "#" $PREFIX.hmmout|awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.hmm.cut
+awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains # this is better method as some domians may not be present in gff due to filtering
+# cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.2.domains # the tail bit gets rid of the first line of output an d the grep removes errors in the output
 
 # mapping
 # mapping is not implemented very well in HirBin, will do this seperately with bbmap
 # align reads to assembly - will need to index first
-bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=T #k=11
+bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11
 
 for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
@@ -74,8 +74,12 @@ Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.c
 
 # Sub binning - if required
 # I've hacked around with a few of the HirBin settings - for speed mostly and for consistency (or the lack of) in domain names
-# will require a cov file from bam_scaffold_count.pl
-awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" $PREFIX.cov > $PREFIX.tab
+# will require a tab (converted cov) file from bam_scaffold_count.pl e.g. awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" x.cov > x.tab
+for F in $P1*.cov; do
+  O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
+  awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" $F > $O
+done 
+
 # then create the required metadata file
 echo -e \
 "Name\tGroup\tReference\tAnnotation\tCounts\Domain\n"\
