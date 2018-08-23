@@ -34,6 +34,10 @@ names(countData) <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData))
 ### sub bins
 countData <- fread("countData.subbins")
 
+# drop exact duplicates (subbins only)
+countData$pfam <- sub("_clust0.*","",countData$V1)
+countdata <- countData[!duplicated(countData[,-1]),-"pfam"]
+
 # set NA values to 0
 countData[is.na] <- 0
 
