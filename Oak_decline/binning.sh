@@ -85,7 +85,7 @@ done
 
 # then create the required metadata file
 echo -e \
-"Name\tGroup\tReference\tAnnotation\tCounts\Domain\n"\
+"Name\tGroup\tReference\tAnnotation\tCounts\tDomain\n"\
 "$PREFIX\tSTATUS\t$PREFIX.pep\t$PREFIX.hmm.cut\tEMPTY\t$PREFIX.domains" > metadata.txt
 
 # The extractSequences module of clusterBinsToSubbins is inpractical for large pep files - the R script subbin_fasta_extractor.R should be used in it's palace
