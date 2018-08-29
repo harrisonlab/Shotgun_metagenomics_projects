@@ -104,7 +104,7 @@ awk -F"\t" '($1~/[HS]/){print $9, $10}' *.uc|awk -F" " '{sub(/_[0-9]+$/,"",$1);s
 
 
 # should be relatively easy to run through the tab files (bin_counts) and assign the counts to the correct sub_bins (reduced.txt), then rename the sub-bins.
-# e.g. in t-SQL: SELECT subbin, sum(count) FROM bin_counts LEFT JOIN sub_bins ON bin_count.bin = sub_bin.bin
+# e.g. in SQL: SELECT subbin, SUM(count) FROM bin_counts LEFT JOIN sub_bins ON bin_count.bin = sub_bins.bin GROUP BY subbin
 # should be able to convert this to R data.table/dplyr syntax
 ```R
 library(data.table)
@@ -112,11 +112,23 @@ library(tidyverse)
 
 sub_bins   <- fread("reduced.txt",header=F) # loaded in 48 seconds
 setnames(sub_bins,c("bin","subbin"))
-# this part in function
-bin_counts <- fread("../../C102_L3.tab",header=F) # ~ 20 seconds per tab file
-setnames(bin_counts,c("bin","count"))
-bin_counts$bin <- sub(":.*","",bin_counts$bin)
-sum_counts <- left_join(bin_counts,sub_bins) %>% group_by(subbin) %>%  summarise(sum(count))
+
+sub_bins <- unique(sub_bins)
+
+qq  <- lapply(list.files(".","C.*.tab",full.names=F),function(x) {fread(x)})
+
+# get count file names and substitute to required format
+names <- sub("(\\.tab)","",list.files(".","*",full.names=F,recursive=F))
+
+# apply names to appropriate list columns and do some renaming (this could be sorted earlier in the pipeline cov_to_tab - pointless keeping the additional stuff in the bin name)
+qq <- lapply(qq,function(X) {colnames(X)<- c("bin","count"); X$bin<-sub(":.*","",X$bin);return(X)})
+
+sum_counts <- lapply(qq,function(bin_counts) left_join(bin_counts,sub_bins) %>% group_by(subbin) %>%  summarise(sum(count)))
+sum_counts <- lapply(1:length(sum_counts),function(i) {X<-sum_counts[[i]];colnames(X)[2]<- names[i];return(as.data.table(X))})
+count_table <- Reduce(function(...) {merge(..., all = TRUE)}, sum_counts)
+
+
+#count_table <- sum_counts %>% purrr::reduce(full_join,by="subbin") # dplyr method - much slower than using data table method here
 
 
 
