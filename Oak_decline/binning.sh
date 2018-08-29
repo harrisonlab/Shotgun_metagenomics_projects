@@ -95,3 +95,31 @@ Rscript subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep $PREFIX_hirbin_outp
 clusterBinsToSubbins.py -m metadata.txt -id 0.7 --reClustering --onlyClustering -f -o  $PREFIX_hirbin_output# clustering without sub bin extraction (no parsing)
 clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_hirbin_output# recluster at a different identity plus parsing
 clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing -f -o  $PREFIX_hirbin_output# this will make count files for $PREFIX.tab to the bins and sub bins 
+
+# ergh parsing gives impossible counts for the subbins - not certain if it's a bug I've introduced in hacking the code.
+# the below will produce a two column output of the clustering. 
+# Column 1 is the name of the bin and column 2 is the name of the sub bin to which it belongs
+
+awk -F"\t" '($1~/[HS]/){print $9, $10}' *.uc|awk -F" " '{sub(/_[0-9]+$/,"",$1);sub(/_[0-9]+$/,"",$5 );A=$1"|"$2;if($5~/\*/){B=A}else{B=$5"|"$6};print A,B}' OFS="\t" > reduced.txt
+
+
+# should be relatively easy to run through the tab files (bin_counts) and assign the counts to the correct sub_bins (reduced.txt), then rename the sub-bins.
+# e.g. in t-SQL: SELECT subbin, sum(count) FROM bin_counts LEFT JOIN sub_bins ON bin_count.bin = sub_bin.bin
+# should be able to convert this to R data.table/dplyr syntax
+```R
+library(data.table)
+library(tidyverse)
+
+sub_bins   <- fread("reduced.txt",header=F) # loaded in 48 seconds
+setnames(sub_bins,c("bin","subbin"))
+# this part in function
+bin_counts <- fread("../../C102_L3.tab",header=F) # ~ 20 seconds per tab file
+setnames(bin_counts,c("bin","count"))
+bin_counts$bin <- sub(":.*","",bin_counts$bin)
+sum_counts <- left_join(bin_counts,sub_bins) %>% group_by(subbin) %>%  summarise(sum(count))
+
+
+
+
+
+
