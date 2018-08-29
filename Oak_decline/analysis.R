@@ -34,12 +34,31 @@ names(countData) <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData))
 ### sub bins
 countData <- fread("countData.subbins")
 
+# read in pfam annotation
+annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
+pfam_go <- fread("~/pipelines/common/resources/mappings/pfam_go_map",header=F)
+
 # drop exact duplicates (subbins only)
-countData$pfam <- sub("_clust0.*","",countData$V1)
-countdata <- countData[!duplicated(countData[,-1]),-"pfam"]
+countData$NAME <- sub("_clust0.*","",countData$V1)
+#countdata <- countData[!duplicated(countData[,-1]),-"NAME"]
+countData <- countData[!duplicated(countData[,-1]),]
+countData$BIN_ID <- paste0("BIN",seq(1,nrow(countData)))
+
+# map bins to pfam and go terms
+mapping_pfam <- countData[,c((ncol(countData)-1),ncol(countData)),with=F]
+mapping_pfam <- data.table(inner_join(mapping_pfam,annotation))
+mapping_go   <- mapping_pfam
+mapping_go$ACC <- sub("\\..*","",mapping_go$ACC)
+mapping_go <- data.table(left_join(mapping_go,pfam_go,by=(c("ACC"="V1"))))
+mapping_go <- mapping_go[complete.cases(mapping_go),]
+#bingo_out <- data.table(V1="EMPTY",V2=mapping_go[,BIN_ID],V3=mapping_go[,BIN_ID],V4=NA,V5=mapping_go[,V4],V6=NA,V7="ISS",V8="UNKNOWN",V9="C",V10="UNKNOWN",V11=mapping_go[,BIN_ID],V12="gene",V13="taxon:000",V14="20180101",V15="GD")
+#write.table(bingo_out,"gene_association.GO_XXX",col.names=F,row.names=F,quote=F,na="",sep="\t")
 
 # set NA values to 0
 countData[is.na] <- 0
+
+# remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
+countData <- countData[,-c("V1","NAME"),with=F]
 
 # read in metadata
 colData   <- fread("colData")
@@ -47,20 +66,22 @@ colData   <- fread("colData")
 # subset metadata 
 colData <- colData[SampleID%in%names(countData),]
 
-# read in pfam annotation
-annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
-
 #===============================================================================
 #       Pool Data/subsample
 #===============================================================================
 
-dds <- DESeqDataSetFromMatrix(dt_to_df(countData), dt_to_df(colData), ~1)
+dds <- DESeqDataSetFromMatrix(dt_to_df(countData,row_names=ncol(countData)), dt_to_df(colData), ~1)
 
 # get number of samples per tree
 #sample_numbers <- table(sub("[A-Z]$","",dds$Sample))
 
 # collapse (mean) samples - could just use sum, then sizeFactors will correct
-dds <- collapseReplicates2(dds,groupby=dds$Sample,simple=T)
+dds <- collapseReplicates(dds,groupby=dds$Sample)
+
+# get size factors
+sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
+
+#dds <- collapseReplicates2(dds,groupby=dds$Sample,simple=T)
 
 # set the dds sizefactor to the number of samples
 # dds$sizeFactor <- as.vector(sample_numbers/2)
@@ -76,11 +97,6 @@ dds <- collapseReplicates2(dds,groupby=dds$Sample,simple=T)
 #       Differential analysis
 #===============================================================================
 
-# create dds object
-# dds <- DESeqDataSetFromMatrix(dt_to_df(countData), dt_to_df(colData), ~1)
-
-# get size factors
-sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
 
 # filter out low counts (especially for subbins - there will be a lot with low counts)
 # dds <- dds[rowSums(counts(dds, normalize=T))>5,]
@@ -105,9 +121,39 @@ dds <- DESeq(dds,parallel=T)
 res <- results(dds,alpha=alpha,parallel=T)
 
 # merge results with annotation
-res_merge <- data.table(inner_join(data.table(NAME=rownames(res),as.data.frame(res)),annotation))
+res_merge <- data.table(inner_join(data.table(BIN_ID=rownames(res),as.data.frame(res)),mapping_pfam))
+
+#===============================================================================
+#       Functional analysis
+#===============================================================================
+library(topGO)
+res_filt <- data.table(left_join(data.table(BIN_ID=rownames(res),as.data.frame(res)),mapping_go))
+res_filt <- res_filt[complete.cases(res_filt),]
+write.table(res_filt[,toString(V4),by=list(BIN_ID)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
+geneID2GO <- readMappings("topgo_temp")
+genes <- unique(res_filt[,c(1,3,7)])
+geneList <- setNames(genes$padj*sign(genes$log2FoldChange),genes$BIN_ID)
+geneSel <- function(X)abs(X)<=0.05
+
+GOdata <- new("topGOdata",ontology = "BP",allGenes = geneList,geneSel = geneSel,annot = annFUN.gene2GO, gene2GO = geneID2GO,nodeSize = 5)
+
+geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X>0 # increased expression
+geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X<0 # decreased expression
 
 
+resultFisher <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
+resultKS <- runTest(GOdata, algorithm = "classic", statistic = "ks")
+resultKS.elim <- runTest(GOdata, algorithm = "elim", statistic = "ks")
+
+resultKS.weight <- runTest(GOdata, algorithm = "weight01", statistic = "ks")
+
+allRes <- GenTable(GOdata, classicFisher = resultFisher,classicKS = resultKS, elimKS = resultKS.elim, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = length(GOdata@graph@nodes))
+over_expressed <- allRes[((allRes$Significant)/(allRes$Expected))>1,]
+
+
+pdf("plot.pdf")
+  showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes = 5, useInfo = 'all')
+dev.off()
 #===============================================================================
 #       Plots and etc.
 #===============================================================================
