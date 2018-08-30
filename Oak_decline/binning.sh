@@ -28,8 +28,8 @@ find -type f -name X.hmmout|head -n1|xargs -I% head -n3 % >$PREFIX.hmmout
 find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
 find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
-grep -v "#" $PREFIX.hmmout|awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,"+",$7}' OFS="\t" > $PREFIX.hmm.cut
-awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains # this is better method as some domians may not be present in gff due to filtering
+grep -v "#" $PREFIX.hmmout|awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS="\t" > $PREFIX.hmm.cut
+awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains # this is better method as some domains may not be present in gff due to filtering
 # cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.2.domains # the tail bit gets rid of the first line of output an d the grep removes errors in the output
 
 # Get gff with different MAX_ACCEPTABLE_OVERLAP - example below will produce gff with all overlapping features
