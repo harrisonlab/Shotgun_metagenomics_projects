@@ -88,7 +88,7 @@ echo -e \
 
 # The extractSequences module of clusterBinsToSubbins is inpractical for large pep files - the R script subbin_fasta_extractor.R should be used in it's palace
 
-Rscript subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep $PREFIX_hirbin_output
+Rscript subbin_fasta_extractor.R $PREFIX.hmm.cut $PREFIX.pep $PREFIX_hirbin_output
 # clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering -f -o  $PREFIX_hirbin_output # this will create the sub bins - use subbin_fasta_extractor in preference to this 
 clusterBinsToSubbins.py -m metadata.txt -id 0.7 --reClustering --onlyClustering -f -o  $PREFIX_hirbin_output# clustering without sub bin extraction (no parsing)
 clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_hirbin_output# recluster at a different identity plus parsing
