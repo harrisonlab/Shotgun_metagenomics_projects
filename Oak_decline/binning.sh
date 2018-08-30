@@ -97,10 +97,18 @@ clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_h
 clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing -f -o  $PREFIX_hirbin_output# this will make count files for $PREFIX.tab to the bins and sub bins 
 
 # ergh parsing gives impossible counts for the subbins - not certain if it's a bug I've introduced in hacking the code.
-# the below will produce a two column output of the clustering. 
+# probably caused by multiple with the same name from the same contig.
+# double ergh - the problem is caused earlier in the pipeline, during the naming of the bins used for the clustering step. 
+# These must be unique and relatable back to the tab files - at the moment bins can join to multiple subbins, hence counts are too high.
+# will need to rerun the clustering using unique names (i.e include the domain location - can be derived from the hmm hit)
+# the error is in subbin_fasta_extractor - I used the same naming convention as in hirbin... 
+
+
+
+# The below will produce a two column output of the clustering. 
 # Column 1 is the name of the bin and column 2 is the name of the sub bin to which it belongs
 
-awk -F"\t" '($1~/[HS]/){print $9, $10}' *.uc|awk -F" " '{sub(/_[0-9]+$/,"",$1);sub(/_[0-9]+$/,"",$5 );A=$1"|"$2;if($5~/\*/){B=A}else{B=$5"|"$6};print A,B}' OFS="\t" > reduced.txt
+awk -F"\t" '($1~/[HS]/){print $2, $9, $10}' *.uc|awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6 );A=$2"£"$1"|"$3;if($6~/\*/){B=A}else{B=$6"£"$1"|"$7};print A,B}' OFS="\t" > reduced.txt
 
 
 # should be relatively easy to run through the tab files (bin_counts) and assign the counts to the correct sub_bins (reduced.txt), then rename the sub-bins.
