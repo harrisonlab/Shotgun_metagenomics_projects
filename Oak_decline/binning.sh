@@ -2,9 +2,7 @@ PREFIX=BIGWOOD # and etc.
 P1=${PREFIX:0:1}
 
 # functional binning with HirBin
-# I've had to hack some of the HirBin scripts (specifically clusterbinstosubbins.py) as it doesn't work in current format
-# also it uses usearch for clustering, while this is good the free 32bit version will almost certainly run out of memory for any sort of 
-# soil metagenome assembly. I will probably change this to use vsearch which will give output the same as usearch
+# I've had to hack some of the HirBin scripts 
 
 # HirBin does an hmm alignment of an assembly to a protein domain database 
 # this will take a looong time unless the assembly and preferbly the hmm database is divided into chunks
