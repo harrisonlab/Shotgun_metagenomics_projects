@@ -168,11 +168,11 @@ count_table <- Reduce(function(...) {merge(..., all = TRUE)}, sum_counts)
 #count_table <- sum_counts %>% purrr::reduce(full_join,by="subbin") # dplyr method - much slower than using data table method here
 fwrite(count_table,"CHESTNUTS.countData.sub_bins",sep="\t")
 
-# or data.table way - maybe
+# or data.table way - maybe (lots of copies, won't be faster)
 sum_counts <- lapply(qq,function(DT) {
   DDT <- copy(sub_bins)
-  DDT[DT]
-  DDT[,.(Count=sum(count)),.(SUB_BIN_NAME)]
-  DDT
+  DDT <- DDT[DT,on="BIN_NAME"] # this is not by reference
+  DDT <- DDT[,.(Count=sum(count)),.(SUB_BIN_NAME)] # this is not by reference, but wayyyy faster
+  DDT 
 })
 
