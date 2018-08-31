@@ -89,6 +89,24 @@ echo -e \
 # The extractSequences module of clusterBinsToSubbins is inpractical for large pep files - the R script subbin_fasta_extractor.R should be used in it's palace
 
 Rscript subbin_fasta_extractor.R $PREFIX.hmm.cut $PREFIX.pep $PREFIX_hirbin_output
+# for some reason this R script didn't work correctly on the latest round. The below awk scripts will quickly fix it, but very odd...
+
+for F in *.fasta; do
+  awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' $F|sed -e '1d' > ${F}.2
+done
+
+for F in *.2; do
+  G=$(sed 's/\..*//' <<<$F) 
+  grep ">.*$G" -A 1 --no-group-separator $F >${F}.3; 
+done
+
+for F in *.2; do
+  G=$(sed 's/\..*//' <<<$F) 
+  awk -F" " -v G=$G '($1~/^>/)&&($2!~G){line=$0;OUTF=$2".fasta.2.3";getline;print line >> OUTF;print >> OUTF}' $F
+done
+
+rename 's/\..*/.fasta/' *.3
+
 # clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering -f -o  $PREFIX_hirbin_output # this will create the sub bins - use subbin_fasta_extractor in preference to this 
 clusterBinsToSubbins.py -m metadata.txt -id 0.7 --reClustering --onlyClustering -f -o  $PREFIX_hirbin_output# clustering without sub bin extraction (no parsing)
 clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_hirbin_output# recluster at a different identity plus parsing
@@ -106,7 +124,10 @@ clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing -f -o  $PREFIX_hir
 # The below will produce a two column output of the clustering. 
 # Column 1 is the name of the bin and column 2 is the name of the sub bin to which it belongs
 
-awk -F"\t" '($1~/[HS]/){print $2, $9, $10}' *.uc|awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6 );A=$2"£"$1"|"$3;if($6~/\*/){B=A}else{B=$6"£"$1"|"$7};print A,B}' OFS="\t" > reduced.txt
+awk -F"\t" '($1~/[HS]/){print $2, $9, $10}' *.uc| \
+awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6);A=$2"\t"$3"\t"$1"\t"$4"\t"$5;if($6~/\*/){B=A}else{B=$6"\t"$7"\t"$1"\t"$8"\t"$9"\t"};print A,B}' OFS="\t" > reduced.txt
+
+# awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6 );A=$2"£"$1"|"$3;if($6~/\*/){B=A}else{B=$6"£"$1"|"$7};print A,B}' OFS="\t" > reduced.txt
 
 
 # should be relatively easy to run through the tab files (bin_counts) and assign the counts to the correct sub_bins (reduced.txt), then rename the sub-bins.
@@ -117,27 +138,41 @@ library(data.table)
 library(tidyverse)
 
 sub_bins   <- fread("reduced.txt",header=F) # loaded in 48 seconds
-setnames(sub_bins,c("bin","subbin"))
-
-sub_bins <- unique(sub_bins)
+sub_bins <- unique(sub_bins) # should all be unique after the edits above
 
 qq  <- lapply(list.files(".","C.*.tab",full.names=F),function(x) {fread(x)})
 
 # get count file names and substitute to required format
 names <- sub("(\\.tab)","",list.files(".","*",full.names=F,recursive=F))
 
-# apply names to appropriate list columns and do some renaming (this could be sorted earlier in the pipeline cov_to_tab - pointless keeping the additional stuff in the bin name)
-qq <- lapply(qq,function(X) {colnames(X)<- c("bin","count"); X$bin<-sub(":.*","",X$bin);return(X)})
+#### apply names to appropriate list columns and do some renaming (this could be sorted earlier in the pipeline cov_to_tab - pointless keeping the additional stuff in the bin name - oh contraire it's very important)
+# Above is wrong - need to split on | and : keeping that metadata
+colsToDelete <- c("TEMP","V1","DIR")
+lapply(qq,function(DT) {
+  DT[,c("BIN_ID","TEMP"):=tstrsplit(V1, "|",fixed=T)]
+  DT[,c("DOM","START","END","DIR"):=tstrsplit(TEMP, ":",fixed=T)]
+  setnames(DT,"V2","count")
+  DT[, (colsToDelete) := NULL]
+  DT[,"BIN_NAME":=paste(BIN_ID,DOM,START,END,sep="_")]
+  setcolorder(DT,c("BIN_ID","DOM","START","END","count"))
+}) # NOTE: this works as everything is being set by reference (DT references qq[[x]]), therefore no copies taken and original is modified
 
-sum_counts <- lapply(qq,function(bin_counts) left_join(bin_counts,sub_bins) %>% group_by(subbin) %>%  summarise(sum(count)))
+sub_bins[,"BIN_NAME":=paste(V1,V2,V4,V5,sep="_")]
+sub_bins[,"SUB_BIN_NAME":=paste(V6,V7,V9,V10,sep="_")]
+colsToDelete <- c("V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11")
+sub_bins[, (colsToDelete) := NULL]
+
+sum_counts <- lapply(qq,function(bin_counts) left_join(bin_counts,sub_bins) %>% group_by(SUB_BIN_NAME) %>%  summarise(sum(count)))
 sum_counts <- lapply(1:length(sum_counts),function(i) {X<-sum_counts[[i]];colnames(X)[2]<- names[i];return(as.data.table(X))})
 count_table <- Reduce(function(...) {merge(..., all = TRUE)}, sum_counts)
-
-
 #count_table <- sum_counts %>% purrr::reduce(full_join,by="subbin") # dplyr method - much slower than using data table method here
+fwrite(count_table,"CHESTNUTS.countData.sub_bins",sep="\t")
 
-
-
-
-
+# or data.table way - maybe
+sum_counts <- lapply(qq,function(DT) {
+  DDT <- copy(sub_bins)
+  DDT[DT]
+  DDT[,.(Count=sum(count)),.(SUB_BIN_NAME)]
+  DDT
+})
 
