@@ -7,7 +7,7 @@ library(data.table)
 library(tidyverse)
 library(devtools)
 load_all("~/pipelines/metabarcoding/scripts/myfunctions") # install_github(https://.../)
-register(MulticoreParam(12))
+register(MulticoreParam(12)) # watch this as each process will take a copy the dds object - could use a lot of memory for sub_bins
 
 #===============================================================================
 #       Load data
@@ -33,9 +33,12 @@ names(countData) <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData))
 
 ### sub bins
 countData <- fread("countData.subbins")
+setnames(countData,names(countData),sub("_L","_",names(countData)))
+countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN)]
 
 # read in pfam annotation
 annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
+setnames(annotation,"NAME","PFAM_NAME")
 pfam_go <- fread("~/pipelines/common/resources/mappings/pfam_go_map",header=F)
 
 # drop exact duplicates (subbins only) - not needed
@@ -56,11 +59,11 @@ mapping_go <- mapping_go[complete.cases(mapping_go),]
 
 # set NA values to 0
 #countData[is.na] <- 0
-insetNA(countData)
+unsetNA(countData)
 
 # remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
 #countData <- countData[,-c("V1","NAME"),with=F]
-colsToDelete <- c("V1","NAME")
+colsToDelete <- c("V1","NAME","PFAM_NAME")
 countData[, (colsToDelete) := NULL]
 
 # read in metadata
@@ -74,7 +77,7 @@ colData <- colData[SampleID%in%names(countData),]
 #       Pool Data/subsample
 #===============================================================================
 
-dds <- DESeqDataSetFromMatrix(dt_to_df(countData[,-"PFAM_NAME"],row_names=1), dt_to_df(colData), ~1)
+dds <- DESeqDataSetFromMatrix(dt_to_df(countData,row_names=1), dt_to_df(colData), ~1)
 
 # get number of samples per tree
 #sample_numbers <- table(sub("[A-Z]$","",dds$Sample))
