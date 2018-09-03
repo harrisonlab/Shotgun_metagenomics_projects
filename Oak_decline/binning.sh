@@ -90,6 +90,7 @@ echo -e \
 
 Rscript subbin_fasta_extractor.R $PREFIX.hmm.cut $PREFIX.pep $PREFIX_hirbin_output
 # for some reason this R script didn't work correctly on the latest round. The below awk scripts will quickly fix it, but very odd...
+# it due to a problem in reordeing the rows
 
 for F in *.fasta; do
   awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' $F|sed -e '1d' > ${F}.2
