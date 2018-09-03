@@ -38,15 +38,15 @@ countData <- fread("countData.subbins")
 annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
 pfam_go <- fread("~/pipelines/common/resources/mappings/pfam_go_map",header=F)
 
-# drop exact duplicates (subbins only)
-countData$NAME <- sub("_clust0.*","",countData$V1)
+# drop exact duplicates (subbins only) - not needed
+#countData$NAME <- sub("_clust0.*","",countData$V1)
 #countdata <- countData[!duplicated(countData[,-1]),-"NAME"]
-countData <- countData[!duplicated(countData[,-1]),]
-countData$BIN_ID <- paste0("BIN",seq(1,nrow(countData)))
+# countData <- countData[!duplicated(countData[,-1]),]
+# countData$BIN_ID <- paste0("BIN",seq(1,nrow(countData)))
 
 # map bins to pfam and go terms
-mapping_pfam <- countData[,c((ncol(countData)-1),ncol(countData)),with=F]
-mapping_pfam <- data.table(inner_join(mapping_pfam,annotation))
+mapping_pfam <- annotation[countData[,c(1,ncol(countData)),with=F],on="PFAM_NAME"]
+
 mapping_go   <- mapping_pfam
 mapping_go$ACC <- sub("\\..*","",mapping_go$ACC)
 mapping_go <- data.table(left_join(mapping_go,pfam_go,by=(c("ACC"="V1"))))
@@ -55,22 +55,26 @@ mapping_go <- mapping_go[complete.cases(mapping_go),]
 #write.table(bingo_out,"gene_association.GO_XXX",col.names=F,row.names=F,quote=F,na="",sep="\t")
 
 # set NA values to 0
-countData[is.na] <- 0
+#countData[is.na] <- 0
+insetNA(countData)
 
 # remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
-countData <- countData[,-c("V1","NAME"),with=F]
+#countData <- countData[,-c("V1","NAME"),with=F]
+colsToDelete <- c("V1","NAME")
+countData[, (colsToDelete) := NULL]
 
 # read in metadata
 colData   <- fread("colData")
 
 # subset metadata 
+# setnames(countData,names(countData),sub("L","",names(countData))) 
 colData <- colData[SampleID%in%names(countData),]
 
 #===============================================================================
 #       Pool Data/subsample
 #===============================================================================
 
-dds <- DESeqDataSetFromMatrix(dt_to_df(countData,row_names=ncol(countData)), dt_to_df(colData), ~1)
+dds <- DESeqDataSetFromMatrix(dt_to_df(countData[,-"PFAM_NAME"],row_names=1), dt_to_df(colData), ~1)
 
 # get number of samples per tree
 #sample_numbers <- table(sub("[A-Z]$","",dds$Sample))
@@ -121,7 +125,9 @@ dds <- DESeq(dds,parallel=T)
 res <- results(dds,alpha=alpha,parallel=T)
 
 # merge results with annotation
+res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
 res_merge <- data.table(inner_join(data.table(BIN_ID=rownames(res),as.data.frame(res)),mapping_pfam))
+
 
 #===============================================================================
 #       Functional analysis
