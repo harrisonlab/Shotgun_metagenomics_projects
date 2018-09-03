@@ -136,44 +136,46 @@ awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6);A=$2"\t"$3"\t"$1"\t"$4"\
 ##R
 library(data.table)
 library(tidyverse)
+library(parallel)
 
 sub_bins   <- fread("reduced.txt",header=F) # loaded in 48 seconds
 sub_bins <- unique(sub_bins) # should all be unique after the edits above
 
-qq  <- lapply(list.files(".","C.*.tab",full.names=F),function(x) {fread(x)})
+qq  <- mclapply(list.files(".","C.*.tab",full.names=F),function(x) {fread(x)},mc.cores=12)
 
 # get count file names and substitute to required format
 names <- sub("(\\.tab)","",list.files(".","*",full.names=F,recursive=F))
 
-#### apply names to appropriate list columns and do some renaming (this could be sorted earlier in the pipeline cov_to_tab - pointless keeping the additional stuff in the bin name - oh contraire it's very important)
-# Above is wrong - need to split on | and : keeping that metadata
-colsToDelete <- c("TEMP","V1","DIR")
-lapply(qq,function(DT) {
+#### apply names to appropriate list columns and do some renaming  - splitting columns by string values (strsplit) is slow
+colsToDelete <- c("TEMP","V1","DIR","BIN_ID")
+mclapply(qq,function(DT) {
   DT[,c("BIN_ID","TEMP"):=tstrsplit(V1, "|",fixed=T)]
   DT[,c("DOM","START","END","DIR"):=tstrsplit(TEMP, ":",fixed=T)]
   setnames(DT,"V2","count")
-  DT[, (colsToDelete) := NULL]
   DT[,"BIN_NAME":=paste(BIN_ID,DOM,START,END,sep="_")]
-  setcolorder(DT,c("BIN_ID","DOM","START","END","count"))
-}) # NOTE: this works as everything is being set by reference (DT references qq[[x]]), therefore no copies taken and original is modified
+  DT[, (colsToDelete) := NULL]
+  setcolorder(DT,c("BIN_NAME","DOM","START","END","count"))
+},mc.cores=12) # NOTE: this works as everything is being set by reference (DT references qq[[x]]), therefore no copies taken and original is modified
 
 sub_bins[,"BIN_NAME":=paste(V1,V2,V4,V5,sep="_")]
 sub_bins[,"SUB_BIN_NAME":=paste(V6,V7,V9,V10,sep="_")]
 colsToDelete <- c("V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11")
 sub_bins[, (colsToDelete) := NULL]
 
-sum_counts <- lapply(qq,function(bin_counts) left_join(bin_counts,sub_bins) %>% group_by(SUB_BIN_NAME) %>%  summarise(sum(count)))
-sum_counts <- lapply(1:length(sum_counts),function(i) {X<-sum_counts[[i]];colnames(X)[2]<- names[i];return(as.data.table(X))})
-count_table <- Reduce(function(...) {merge(..., all = TRUE)}, sum_counts)
-#count_table <- sum_counts %>% purrr::reduce(full_join,by="subbin") # dplyr method - much slower than using data table method here
-fwrite(count_table,"CHESTNUTS.countData.sub_bins",sep="\t")
+### sum_counts systimes: plyr;1563 DT;754 parallel_DT;150 
 
-# or data.table way - maybe (lots of copies, won't be faster)
-sum_counts <- lapply(qq,function(DT) {
+#sum_counts <- lapply(qq,function(bin_counts) left_join(bin_counts,sub_bins) %>% group_by(SUB_BIN_NAME) %>%  summarise(sum(count)))
+#sum_counts <- lapply(1:length(sum_counts),function(i) {X<-sum_counts[[i]];colnames(X)[2]<- names[i];return(as.data.table(X))})
+#count_table <- sum_counts %>% purrr::reduce(full_join,by="subbin") # dplyr method - much slower than using data table method here
+
+# or data.table way - maybe (lots of copies, will it be faster?)
+sum_counts <- mclapply(qq,function(DT) {
   DDT <- copy(sub_bins)
   DDT <- DDT[DT,on="BIN_NAME"] # this is not by reference
-  DDT <- DDT[,.(Count=sum(count)),.(SUB_BIN_NAME)] # this is not by reference, but wayyyy faster
+  DDT <- DDT[,.(Count=sum(count)),.(SUB_BIN_NAME)] # this is not by reference, but wayyyy faster than plyr
   DDT 
-})
-
+},mc.cores=12)
+count_table <- Reduce(function(...) {merge(..., all = TRUE)}, sum_counts)
+fwrite(count_table,"CHESTNUTS.countData.sub_bins",sep="\t")
+       
 countData[,"PFAM_NAME":=sub("(k[0-9]+_)([0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\3",countData$SUB_BIN_NAME)]
