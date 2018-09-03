@@ -27,9 +27,11 @@ qq    <- lapply(seq(1:length(qq)),function(i) {X<-qq[[i]];colnames(X)[2] <- name
 countData <- Reduce(function(...) {merge(..., all = TRUE)}, qq) # data table method (returns data table)
 #countData    <- qq %>% purr::reduce(full_join,by="V1") # plyr method (returns tibble - but not always...)
 
-### count matrix
+### count matrix (bins)
 countData <- fread("countData")
-names(countData) <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData))
+setnames(countData,names(countData),sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData)))
+setnames(countData,"Domain","PFAM_NAME")
+
 
 ### sub bins
 countData <- fread("countData.subbins")
@@ -63,7 +65,8 @@ unsetNA(countData)
 
 # remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
 #countData <- countData[,-c("V1","NAME"),with=F]
-colsToDelete <- c("V1","NAME","PFAM_NAME")
+# sub_bins only
+colsToDelete <- c("V1","NAME","PFAM_NAME") 
 countData[, (colsToDelete) := NULL]
 
 # read in metadata
@@ -112,7 +115,8 @@ sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
 alpha <- 0.1
 
 # the full model
-design <- ~Block_pair+Status
+design <- ~Block_pair+Status # or
+design <- ~Status
 
 # set any columns used in model to be factors (deseq should really do this internally...)
 dds$Status <- as.factor(dds$Status)
@@ -131,6 +135,8 @@ res <- results(dds,alpha=alpha,parallel=T)
 res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
 res_merge <- data.table(inner_join(data.table(BIN_ID=rownames(res),as.data.frame(res)),mapping_pfam))
 
+fwrite(res_merge,"CHESTNUTS_pairs.txt",sep="\t",quote=F)
+fwrite(res_merge[padj<=0.1,],"CHESTNUTS_pairs_sig.txt",sep="\t",quote=F)
 
 #===============================================================================
 #       Functional analysis
