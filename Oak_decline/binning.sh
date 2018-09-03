@@ -176,3 +176,4 @@ sum_counts <- lapply(qq,function(DT) {
   DDT 
 })
 
+countData[,"PFAM_NAME":=sub("(k[0-9]+_)([0-9]+_)(.*)","\\3",countData$SUB_BIN_NAME)]
