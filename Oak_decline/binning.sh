@@ -67,7 +67,7 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   blacklace[01][0-9].blacklace \
   $BAM \
   $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.gff \
-  $PROJECT_FOLDER/data/assembled/counts/megahit \
+  $PROJECT_FOLDER/data/binning/$PREFIX \
   cov
 done
 
