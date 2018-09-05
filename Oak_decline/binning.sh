@@ -42,14 +42,7 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   usemodulo=T 
 done
 
-# bedtools code is inefficient at getting over-lapping counts (if min overlap is set to 1)
-# I've written something in perl which is way less memory hungry and takes about a millionth of the time to run
-# output is not a cov file but just counts per domain - not certain the sub-binning is worth while (could modify bam_count to return a cov/tab file to implement this step)
-# takes about ten minutes on a single core to run, could easily get it to produce a cov file
-# bam_scaffold_count.pl will output a cov file rather than counts per domain, it is memory hungry ~10G for large (>2G) gff files
-samtools view bam_file|~/pipelines/metagenomics/scripts/bam_scaffold_count.pl $PREFIX.gff > bam_counts.txt
-samtools view bam_file|~/pipelines/metagenomics/scripts/bam_scaffold_count.pl $PREFIX.gff cov> bam_file.cov
-
+# count overlapping features
 for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
   blacklace[01][0-9].blacklace \
@@ -61,9 +54,7 @@ done
 
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.cov" "$PREFIX.countData"
 
-# Sub binning - if required
-# I've hacked around with a few of the HirBin settings - for speed mostly and for consistency (or the lack of) in domain names
-# will require a tab (converted cov) file from bam_scaffold_count.pl e.g. awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" x.cov > x.tab
+# Sub binning - convert cov to tab
 for F in $P1*.cov; do
   O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
   awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" $F > $O
@@ -78,7 +69,7 @@ echo -e \
 
 Rscript subbin_fasta_extractor.R $PREFIX.hmm.cut $PREFIX.pep $PREFIX_hirbin_output
 # for some reason this R script didn't work correctly on the latest round. The below awk scripts will quickly fix it, but very odd...
-# it due to a problem in reordeing the rows
+# it was due to a problem in reordeing the rows - this is now fixed, but below was used for Chestnuts
 
 for F in *.fasta; do
   awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' $F|sed -e '1d' > ${F}.2
@@ -123,48 +114,5 @@ awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6);A=$2"\t"$3"\t"$1"\t"$4"\
 # e.g. in SQL: SELECT subbin, SUM(count) FROM bin_counts LEFT JOIN sub_bins ON bin_count.bin = sub_bins.bin GROUP BY subbin
 # should be able to convert this to R data.table/dplyr syntax
 ##R
-library(data.table)
-library(tidyverse)
-library(parallel)
+Rscript subbin_parser.R reduced.txt *.tab $PREFIX.countData.sub_bins
 
-sub_bins   <- fread("reduced.txt",header=F) # loaded in 48 seconds
-sub_bins <- unique(sub_bins) # should all be unique after the edits above
-
-qq  <- mclapply(list.files(".","C.*.tab",full.names=F),function(x) {fread(x)},mc.cores=12)
-
-# get count file names and substitute to required format
-names <- sub("(\\.tab)","",list.files(".","*",full.names=F,recursive=F))
-
-#### apply names to appropriate list columns and do some renaming  - splitting columns by string values (strsplit) is slow
-colsToDelete <- c("TEMP","V1","DIR","BIN_ID")
-mclapply(qq,function(DT) {
-  DT[,c("BIN_ID","TEMP"):=tstrsplit(V1, "|",fixed=T)]
-  DT[,c("DOM","START","END","DIR"):=tstrsplit(TEMP, ":",fixed=T)]
-  setnames(DT,"V2","count")
-  DT[,"BIN_NAME":=paste(BIN_ID,DOM,START,END,sep="_")]
-  DT[, (colsToDelete) := NULL]
-  setcolorder(DT,c("BIN_NAME","DOM","START","END","count"))
-},mc.cores=12) # NOTE: this works as everything is being set by reference (DT references qq[[x]]), therefore no copies taken and original is modified
-
-sub_bins[,"BIN_NAME":=paste(V1,V2,V4,V5,sep="_")]
-sub_bins[,"SUB_BIN_NAME":=paste(V6,V7,V9,V10,sep="_")]
-colsToDelete <- c("V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11")
-sub_bins[, (colsToDelete) := NULL]
-
-### sum_counts systimes: plyr;1563 DT;754 parallel_DT;150 
-
-#sum_counts <- lapply(qq,function(bin_counts) left_join(bin_counts,sub_bins) %>% group_by(SUB_BIN_NAME) %>%  summarise(sum(count)))
-#sum_counts <- lapply(1:length(sum_counts),function(i) {X<-sum_counts[[i]];colnames(X)[2]<- names[i];return(as.data.table(X))})
-#count_table <- sum_counts %>% purrr::reduce(full_join,by="subbin") # dplyr method - much slower than using data table method here
-
-# or data.table way - maybe (lots of copies, will it be faster?)
-sum_counts <- mclapply(qq,function(DT) {
-  DDT <- copy(sub_bins)
-  DDT <- DDT[DT,on="BIN_NAME"] # this is not by reference
-  DDT <- DDT[,.(Count=sum(count)),.(SUB_BIN_NAME)] # this is not by reference, but wayyyy faster than plyr
-  DDT 
-},mc.cores=12)
-count_table <- Reduce(function(...) {merge(..., all = TRUE)}, sum_counts)
-fwrite(count_table,"CHESTNUTS.countData.sub_bins",sep="\t")
-       
-countData[,"PFAM_NAME":=sub("(k[0-9]+_)([0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\3",countData$SUB_BIN_NAME)]
