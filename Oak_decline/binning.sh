@@ -1,24 +1,16 @@
+# set variables
+$PROJECT_FOLDER=~/projects/OAK_decline/metagenomics
 PREFIX=BIGWOOD # and etc.
 P1=${PREFIX:0:1}
 
-# functional binning with HirBin
-# I've had to hack some of the HirBin scripts 
-
-# HirBin does an hmm alignment of an assembly to a protein domain database 
-# this will take a looong time unless the assembly and preferbly the hmm database is divided into chunks
-
-# it has three/four steps
-
-# annotate uses functionalAnnotaion.py, but splits input file into 20,000 droid chunks for running on cluster (25 concurrent jobs)
-#functionalAnnotation.py -m METADATA_FILE -db DATABASE_FILE -e EVALUE_CUTOFF -n N -p MAX_ACCEPTABLE_OVERLAP
-
+# identify pfam domains in assembly
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
  1 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
  $PREFIX.contigs.fa \
  ~/pipelines/common/resources/pfam/Pfam-A.hmm \
  -e 1e-03
 
-# concatenate annotate output
+# concatenate annotation output
 find -type f -name X.gff|head -n1|xargs -I% head -n1 % >$PREFIX.gff
 find -type f -name X.gff|xargs -I% grep -v "##" % >>$PREFIX.gff
 find -type f -name X.pep|xargs -I% cat % >$PREFIX.pep
@@ -30,13 +22,9 @@ grep -v "#" $PREFIX.hmmout|awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {prin
 awk -F"\t" '{print $1}' $PREFIX.hmm.cut|sort|uniq > $PREFIX.domains # this is better method as some domains may not be present in gff due to filtering
 # cut -f9 $PREFIX.gff|sort|uniq|sed 's/ID=//'|tail -n +2 > $PREFIX.2.domains # the tail bit gets rid of the first line of output an d the grep removes errors in the output
 
-# Get gff with different MAX_ACCEPTABLE_OVERLAP - example below will produce gff with all overlapping features
-con_coor.py -p 1 -o $PREFIX.2.gff -d $PREFIX.pep -m $PREFIX.hmmout
-
 # mapping
-# mapping is not implemented very well in HirBin, will do this seperately with bbmap
-# align reads to assembly - will need to index first
-bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11
+
+bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
 
 for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
