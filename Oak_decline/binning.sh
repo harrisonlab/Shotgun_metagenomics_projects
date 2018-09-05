@@ -105,7 +105,7 @@ clusterBinsToSubbins.py -m $PREFIX.metadata.txt -id 0.7 --reClustering --onlyClu
 # Column 1 is the name of the bin and column 2 is the name of the sub bin to which it belongs
 
 awk -F"\t" '($1~/[HS]/){print $2, $9, $10}' *.uc| \
-awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6);A=$2"\t"$3"\t"$1"\t"$4"\t"$5;if($6~/\*/){B=A}else{B=$6"\t"$7"\t"$1"\t"$8"\t"$9"\t"};print A,B}' OFS="\t" > reduced.txt
+awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6);A=$2"\t"$3"\t"$1"\t"$4"\t"$5;if($6~/\*/){B=A}else{B=$6"\t"$7"\t"$1"\t"$8"\t"$9};print A,B}' OFS="\t" > reduced.txt
 
 # awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6 );A=$2"£"$1"|"$3;if($6~/\*/){B=A}else{B=$6"£"$1"|"$7};print A,B}' OFS="\t" > reduced.txt
 
