@@ -60,6 +60,12 @@ for F in $P1*.cov; do
   awk -F"\t" '{sub("ID=","|",$(NF-1));OUT=$1$(NF-1)":"$4":"$5":"$7;print OUT,$NF}' OFS="\t" $F > $O
 done 
 
+for F in $P1*.cov; do
+  O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
+  awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O
+done 
+
+
 # then create the required metadata file
 echo -e \
 "Name\tGroup\tReference\tAnnotation\tCounts\tDomain\n"\
@@ -87,32 +93,11 @@ done
 
 rename 's/\..*/.fasta/' *.3
 
-# clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering -f -o  $PREFIX_hirbin_output # this will create the sub bins - use subbin_fasta_extractor in preference to this 
+# Clustering
 clusterBinsToSubbins.py -m $PREFIX.metadata.txt -id 0.7 --reClustering --onlyClustering -f -o  $PREFIX_hirbin_output# clustering without sub bin extraction (no parsing)
-# clusterBinsToSubbins.py -m $PREFIX.metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_hirbin_output# recluster at a different identity plus parsing
-# clusterBinsToSubbins.py -m $PREFIX.metadata.txt -id 0.7 --onlyParsing -f -o  $PREFIX_hirbin_output# this will make count files for $PREFIX.tab to the bins and sub bins 
-
-# ergh parsing gives impossible counts for the subbins - not certain if it's a bug I've introduced in hacking the code.
-# probably caused by multiple with the same name from the same contig.
-# double ergh - the problem is caused earlier in the pipeline, during the naming of the bins used for the clustering step. 
-# These must be unique and relatable back to the tab files - at the moment bins can join to multiple subbins, hence counts are too high.
-# will need to rerun the clustering using unique names (i.e include the domain location - can be derived from the hmm hit)
-# the error is in subbin_fasta_extractor - I used the same naming convention as in hirbin... 
-
-
-
-# The below will produce a two column output of the clustering. 
-# Column 1 is the name of the bin and column 2 is the name of the sub bin to which it belongs
-
 awk -F"\t" '($1~/[HS]/){print $2, $9, $10}' *.uc| \
-awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6);A=$2"\t"$3"\t"$1"\t"$4"\t"$5;if($6~/\*/){B=A}else{B=$6"\t"$7"\t"$1"\t"$8"\t"$9};print A,B}' OFS="\t" > reduced.txt
+awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6);A=$2"_"$3"_"$4"_"$5;if($6~/\*/){B=A}else{B=$6"_"$7"_"$8"_"$9};print A,B}' OFS="\t" > reduced.txt
 
-# awk -F" " '{sub(/_[0-9]+$/,"",$2);sub(/_[0-9]+$/,"",$6 );A=$2"£"$1"|"$3;if($6~/\*/){B=A}else{B=$6"£"$1"|"$7};print A,B}' OFS="\t" > reduced.txt
-
-
-# should be relatively easy to run through the tab files (bin_counts) and assign the counts to the correct sub_bins (reduced.txt), then rename the sub-bins.
-# e.g. in SQL: SELECT subbin, SUM(count) FROM bin_counts LEFT JOIN sub_bins ON bin_count.bin = sub_bins.bin GROUP BY subbin
-# should be able to convert this to R data.table/dplyr syntax
-##R
+# parse 
 Rscript subbin_parser.R reduced.txt *.tab $PREFIX.countData.sub_bins
 
