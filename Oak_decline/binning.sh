@@ -66,7 +66,7 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
   blacklace[01][0-9].blacklace \
   $BAM \
-  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}.gff \
   $PROJECT_FOLDER/data/binning/$PREFIX \
   cov
 done
@@ -109,9 +109,9 @@ done
 rename 's/\..*/.fasta/' *.3
 
 # clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyClustering -f -o  $PREFIX_hirbin_output # this will create the sub bins - use subbin_fasta_extractor in preference to this 
-clusterBinsToSubbins.py -m metadata.txt -id 0.7 --reClustering --onlyClustering -f -o  $PREFIX_hirbin_output# clustering without sub bin extraction (no parsing)
-clusterBinsToSubbins.py -m metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_hirbin_output# recluster at a different identity plus parsing
-clusterBinsToSubbins.py -m metadata.txt -id 0.7 --onlyParsing -f -o  $PREFIX_hirbin_output# this will make count files for $PREFIX.tab to the bins and sub bins 
+clusterBinsToSubbins.py -m $PREFIX.metadata.txt -id 0.7 --reClustering --onlyClustering -f -o  $PREFIX_hirbin_output# clustering without sub bin extraction (no parsing)
+# clusterBinsToSubbins.py -m $PREFIX.metadata.txt -id 0.95 --reClustering -f -o  $PREFIX_hirbin_output# recluster at a different identity plus parsing
+# clusterBinsToSubbins.py -m $PREFIX.metadata.txt -id 0.7 --onlyParsing -f -o  $PREFIX_hirbin_output# this will make count files for $PREFIX.tab to the bins and sub bins 
 
 # ergh parsing gives impossible counts for the subbins - not certain if it's a bug I've introduced in hacking the code.
 # probably caused by multiple with the same name from the same contig.
