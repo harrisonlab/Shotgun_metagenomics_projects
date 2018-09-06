@@ -101,5 +101,5 @@ awk -F" " '{
 }' OFS="\t" > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
 
 # parse 
-Rscript subbin_parser.R reduced.txt *.tab $PREFIX.countData.sub_bins
+Rscript subbin_parser_v2.R reduced.txt *.tab $PREFIX.countData.sub_bins
 
