@@ -72,15 +72,14 @@ countData[, (colsToDelete) := NULL]
 # read in metadata
 colData   <- fread("colData")
 
-# subset metadata 
-# setnames(countData,names(countData),sub("L","",names(countData))) 
-colData <- colData[SampleID%in%names(countData),]
-
 #===============================================================================
 #       Pool Data/subsample
 #===============================================================================
+# row_names column of countData object
+row_names <- 1 
 
-dds <- DESeqDataSetFromMatrix(dt_to_df(countData,row_names=1), dt_to_df(colData), ~1)
+# creates a dds object and also subsets and orders colData by colnames of countData
+dds <- DESeqDataSetFromMatrix(dt_to_df(countData,row_names), dt_to_df(colData)[names(countData)[-row_names],], ~1)
 
 # get number of samples per tree
 #sample_numbers <- table(sub("[A-Z]$","",dds$Sample))
@@ -91,22 +90,12 @@ dds <- collapseReplicates(dds,groupby=dds$Sample)
 # get size factors
 sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
 
-#dds <- collapseReplicates2(dds,groupby=dds$Sample,simple=T)
-
-# set the dds sizefactor to the number of samples
-# dds$sizeFactor <- as.vector(sample_numbers/2)
-
-# recreate countData and colData
-#countData<- round(counts(dds,normalize=T),0)
-#colData <- as.data.frame(colData(dds))
-
-# new dds object with the corrected data set
-#dds <- DESeqDataSetFromMatrix(countData,colData,~1)
-
 #===============================================================================
 #       Differential analysis
 #===============================================================================
 
+# remove unhelpful counts (Langdale)
+dds <- dds[,dds$Status!="Sandra"]
 
 # filter out low counts (especially for subbins - there will be a lot with low counts)
 # dds <- dds[rowSums(counts(dds, normalize=T))>5,]
@@ -130,13 +119,31 @@ dds <- DESeq(dds,parallel=T)
 
 # calculate results for default contrast (S vs H) - parallel only useful for subbins
 res <- results(dds,alpha=alpha,parallel=T)
-
 # merge results with annotation
 res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
-res_merge <- data.table(inner_join(data.table(BIN_ID=rownames(res),as.data.frame(res)),mapping_pfam))
+res_merge <- data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
 
 fwrite(res_merge,"CHESTNUTS_pairs.txt",sep="\t",quote=F)
 fwrite(res_merge[padj<=0.1,],"CHESTNUTS_pairs_sig.txt",sep="\t",quote=F)
+
+# Langdale
+design <- ~Block_pair+Status # no results for ~Status model 
+LHS <- c("AOD","COD","Remission","AOD","COD","AOD")
+RHS <- c("Healthy","Healthy","Healthy","Remission","Remission","COD")
+
+res <- lapply(seq_along(LHS),function(i) {
+  results(dds,alpha=alpha,parallel=T,contrast=c("Status",LHS[i],RHS[i]))
+})
+
+invisible(lapply(res,summary))
+
+res_merge <- lapply(res,function(res) {
+  data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
+})
+
+lapply(seq_along(res_merge),function(i) {
+  invisible(fwrite(res_merge[[i]],paste("LANGDALE",LHS[i],RHS[i],"txt",sep="."),sep="\t",quote=F))
+})
 
 #===============================================================================
 #       Functional analysis
