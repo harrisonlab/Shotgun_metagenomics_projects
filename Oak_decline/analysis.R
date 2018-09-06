@@ -8,6 +8,10 @@ library(tidyverse)
 library(devtools)
 load_all("~/pipelines/metabarcoding/scripts/myfunctions") # install_github(https://.../)
 register(MulticoreParam(12)) # watch this as each process will take a copy the dds object - could use a lot of memory for sub_bins
+# MultiCore actually shares the memory between parent and worker processes. But, unfortunatly the memory gets copied on R scheduled garbage collection. Annoying
+register(SnowParam(12))# No better - will just have to run on a high memory node (needs ~50G for Langdale sub_bin processing)
+
+
 
 #===============================================================================
 #       Load data
