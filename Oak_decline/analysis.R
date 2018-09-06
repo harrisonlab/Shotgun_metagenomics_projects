@@ -36,7 +36,7 @@ setnames(countData,"Domain","PFAM_NAME")
 ### sub bins
 countData <- fread("countData.subbins")
 setnames(countData,names(countData),sub("_L","_",names(countData)))
-countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN)]
+countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN_NAME)]
 
 # read in pfam annotation
 annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
