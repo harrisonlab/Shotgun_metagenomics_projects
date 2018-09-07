@@ -9,10 +9,10 @@ library(devtools)
 load_all("~/pipelines/metabarcoding/scripts/myfunctions") # install_github(https://.../)
 register(MulticoreParam(12)) # watch this as each process will take a copy the dds object - could use a lot of memory for sub_bins
 # MultiCore actually shares the memory between parent and worker processes. But, unfortunatly the memory gets copied on R scheduled garbage collection. Annoying
-register(SnowParam(12))# No better - will just have to run on a high memory node (needs ~50G for Langdale sub_bin processing)
+#register(SnowParam(12))# No better - will just have to run on a high memory node (needs ~50G for Langdale sub_bin processing - with multiprocessing)
 
-
-
+SITE<-c("CHESTNUTS","LANGDALE","BIGWOOD","ATTINGHAM","GT_MONK")
+SITE <- SITE[2]
 #===============================================================================
 #       Load data
 #===============================================================================
@@ -32,13 +32,13 @@ countData <- Reduce(function(...) {merge(..., all = TRUE)}, qq) # data table met
 #countData    <- qq %>% purr::reduce(full_join,by="V1") # plyr method (returns tibble - but not always...)
 
 ### count matrix (bins)
-countData <- fread("countData")
+countData <- fread(paste0(SITE,".countData"))
 setnames(countData,names(countData),sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData)))
 setnames(countData,"Domain","PFAM_NAME")
 
 
 ### sub bins
-countData <- fread("countData.subbins")
+countData <- fread(paste0(SITE,".countData.sub_bins"))
 setnames(countData,names(countData),sub("_L","_",names(countData)))
 countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN_NAME)]
 
