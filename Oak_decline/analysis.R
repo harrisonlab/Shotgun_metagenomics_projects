@@ -141,24 +141,35 @@ res <- lapply(seq_along(LHS),function(i) {
 
 invisible(lapply(res,summary))
 
+# bins
 res_merge <- lapply(res,function(res) {
   data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
 })
 
+
 lapply(seq_along(res_merge),function(i) {
-  invisible(fwrite(res_merge[[i]],paste("LANGDALE",LHS[i],RHS[i],"txt",sep="."),sep="\t",quote=F))
+  invisible(fwrite(res_merge[[i]],paste(SITE,LHS[i],RHS[i],"txt",sep="."),sep="\t",quote=F))
+})
+
+# sub bins
+res_merge <- lapply(res,function(res) {
+  data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
+})
+
+lapply(seq_along(res_merge),function(i) {
+  invisible(fwrite(res_merge[[i]],paste(SITE,LHS[i],RHS[i],"sub_bin","txt",sep="."),sep="\t",quote=F))
 })
 
 #===============================================================================
-#       Functional analysis
+#       Functional analysis (sub bins) 
 #===============================================================================
 library(topGO)
-res_filt <- data.table(left_join(data.table(BIN_ID=rownames(res),as.data.frame(res)),mapping_go))
+res_filt <- data.table(left_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_go))
 res_filt <- res_filt[complete.cases(res_filt),]
-write.table(res_filt[,toString(V4),by=list(BIN_ID)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
+fwrite(res_filt[,toString(V4),by=list(SUB_BIN_NAME)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
 geneID2GO <- readMappings("topgo_temp")
-genes <- unique(res_filt[,c(1,3,7)])
-geneList <- setNames(genes$padj*sign(genes$log2FoldChange),genes$BIN_ID)
+genes <- unique(res_filt[,c(1,3,7)]) # sub_bin_name,fc,p(adjusted)
+geneList <- setNames(genes$padj*sign(genes$log2FoldChange),genes$SUB_BIN_NAME)
 geneSel <- function(X)abs(X)<=0.05
 
 GOdata <- new("topGOdata",ontology = "BP",allGenes = geneList,geneSel = geneSel,annot = annFUN.gene2GO, gene2GO = geneID2GO,nodeSize = 5)
