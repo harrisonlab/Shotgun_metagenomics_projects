@@ -59,7 +59,9 @@ for F in $P1*.cov; do
   awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O
 done 
 
-# extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time) 
+# extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
+# I've split this script into two sections to save on memory allocation (R parallelisation makes copies of objects in base - well sort of)
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.R $PREFIX.hmm.cut $PREFIX.domains
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T
 
 # for some reason this R script didn't work correctly very odd...
