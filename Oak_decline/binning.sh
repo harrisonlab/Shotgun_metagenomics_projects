@@ -19,6 +19,7 @@ find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
 find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
 grep -v "#" $PREFIX.hmmout|awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS="\t" > $PREFIX.hmm.cut
+# should rewrite domain_extractor in perl so I can pipe the above awk output
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.R $PREFIX.hmm.cut $PREFIX.domains
 
 # mapping
