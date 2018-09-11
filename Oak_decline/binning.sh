@@ -18,9 +18,9 @@ find -type f -name X.hmmout|head -n1|xargs -I% head -n3 % >$PREFIX.hmmout
 find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
 find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
 
-grep -v "#" $PREFIX.hmmout|awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS="\t" > $PREFIX.hmm.cut
-# should rewrite domain_extractor in perl so I can pipe the above awk output
-Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.R $PREFIX.hmm.cut $PREFIX.domains
+grep -v "#" $PREFIX.hmmout| \
+awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS="\t"| \
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl > $PREFIX.domains
 
 # mapping
 bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
@@ -61,8 +61,6 @@ for F in $P1*.cov; do
 done 
 
 # extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
-# I've split this script into two sections to save on memory allocation (R parallelisation makes copies of objects in base - well sort of)
-Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.R $PREFIX.hmm.cut $PREFIX.domains
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T
 
 # for some reason this R script didn't work correctly very odd...
