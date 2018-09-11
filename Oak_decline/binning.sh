@@ -25,44 +25,14 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl > $PREF
 # extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T
 
-# for some reason this R script didn't work correctly very odd...
-# it was due to a problem in reordeing the rows - this is now fixed, but below was used for Chestnuts
-for F in *.fasta; do
-  awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' $F|sed -e '1d' > ${F}.2
-done
-
-for F in *.2; do
-  G=$(sed 's/\..*//' <<<$F) 
-  grep ">.*$G" -A 1 --no-group-separator $F >${F}.3; 
-done
-
-for F in *.2; do
-  G=$(sed 's/\..*//' <<<$F) 
-  awk -F" " -v G=$G '($1~/^>/)&&($2!~G){line=$0;OUTF=$2".fasta.2.3";getline;print line >> OUTF;print >> OUTF}' $F
-done
-
-rename 's/\..*/.fasta/' *.3
-
 # Clustering
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast \
   blacklace[01][0-9].blacklace 100 \
   $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/forClustering \
   $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/clust0.7 \
   0.7 
-
-awk -F"\t" '($1~/[HS]/){print $2, $9, $10}' $PROJECT_FOLDER/data/binning/${PREFIX}_clustering/clust0.7/*.uc| \
-awk -F" " '{
-  sub(/_[0-9]+$/,"",$2);
-  sub(/_[0-9]+$/,"",$6);
-  A=$2"_"$3"_"$4"_"$5;
-  if($6~/\*/) {
-    B=A
-  } else{
-    B=$6"_"$7"_"$8"_"$9
-  };
-  print A,B
-}' OFS="\t" > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
-
+# concatenate clustering output
+cat $PROJECT_FOLDER/data/binning/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
 
 # mapping
 bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
