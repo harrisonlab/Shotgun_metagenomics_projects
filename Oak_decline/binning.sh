@@ -22,44 +22,6 @@ grep -v "#" $PREFIX.hmmout| \
 awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS="\t"| \
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl > $PREFIX.domains
 
-# mapping
-bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
-
-for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
-  RR=$(sed 's/_1/_2/' <<< $FR)
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  16 blacklace[01][0-9].blacklace \
-  $PROJECT_FOLDER/data/assembled/aligned/megahit \
-  $PREFIX \
-  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa.gz \
-  $FR \
-  $RR \
-  maxindel=100 \
-  unpigz=t \
-  touppercase=t \
-  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ 
-  usemodulo=T 
-done
-
-# count overlapping features
-for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
-  blacklace[01][0-9].blacklace \
-  $BAM \
-  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}.gff \
-  $PROJECT_FOLDER/data/binning/$PREFIX \
-  cov
-done
-
-# count bins
-Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.cov" "$PREFIX.countData"
-
-# Sub binning - convert cov to tab
-for F in $P1*.cov; do
-  O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
-  awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O
-done 
-
 # extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T
 
@@ -101,6 +63,45 @@ awk -F" " '{
   print A,B
 }' OFS="\t" > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
 
-# parse 
+
+# mapping
+bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
+
+for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
+  16 blacklace[01][0-9].blacklace \
+  $PROJECT_FOLDER/data/assembled/aligned/megahit \
+  $PREFIX \
+  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa.gz \
+  $FR \
+  $RR \
+  maxindel=100 \
+  unpigz=t \
+  touppercase=t \
+  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ 
+  usemodulo=T 
+done
+
+# count overlapping features
+for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
+  blacklace[01][0-9].blacklace \
+  $BAM \
+  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/binning/$PREFIX \
+  cov
+done
+
+# count bins
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.cov" "$PREFIX.countData"
+
+# Sub binning - convert cov to tab
+for F in $P1*.cov; do
+  O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
+  awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O
+done 
+
+# parsing
 Rscript subbin_parser_v2.R reduced.txt *.tab $PREFIX.countData.sub_bins
 
