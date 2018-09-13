@@ -1,14 +1,14 @@
 # set variables
 PROJECT_FOLDER=~/projects/ARD/metagenomics
-# PREFIX=BIGWOOD # and etc.
-# P1=${PREFIX:0:1}
+PREFIX="" # and etc.
+P1=${PREFIX:0:1}
 
 # identify pfam domains in assemblies
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
- 1 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
- $PREFIX.contigs.fa \
+ 1 25 $PROJECT_FOLDER/data/assembled \
+ FINAL_COMBINED.assembly.fa \
  ~/pipelines/common/resources/pfam/Pfam-A.hmm \
- -e 1e-03
+ -e 1e-05
 
 # concatenate annotation output
 find -type f -name X.gff|head -n1|xargs -I% head -n1 % >$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.gff
