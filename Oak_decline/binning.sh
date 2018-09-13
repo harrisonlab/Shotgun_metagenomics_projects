@@ -5,7 +5,7 @@ P1=${PREFIX:0:1}
 
 # identify pfam domains in assemblies
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
- 1 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
+ 1 25 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
  $PREFIX.contigs.fa \
  ~/pipelines/common/resources/pfam/Pfam-A.hmm \
  -e 1e-03
