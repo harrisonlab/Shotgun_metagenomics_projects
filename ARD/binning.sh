@@ -1,10 +1,77 @@
-# functional binning with HirBin
-# I've had to hack some of the HirBin scripts (specifically clusterbinstosubbins.py) as it doesn't work in current format
+# set variables
+PROJECT_FOLDER=~/projects/ARD/metagenomics
+# PREFIX=BIGWOOD # and etc.
+# P1=${PREFIX:0:1}
 
-# HirBin does an hmm alignment of an assembly to a protein domain database 
-# this will take a looong time unless the assembly and preferbly the hmm database is divided into chunks
+# identify pfam domains in assemblies
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
+ 1 $PROJECT_FOLDER/data/assembled/megahit/$PREFIX \
+ $PREFIX.contigs.fa \
+ ~/pipelines/common/resources/pfam/Pfam-A.hmm \
+ -e 1e-03
 
-# it has three/four steps
+# concatenate annotation output
+find -type f -name X.gff|head -n1|xargs -I% head -n1 % >$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.gff
+find -type f -name X.gff|xargs -I% grep -v "##" % >>$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.gff
+find -type f -name X.pep|xargs -I% cat % >$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.pep
+# find -type f -name X.hmmout|head -n1|xargs -I% head -n3 % >$PREFIX.hmmout   
+# find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
+# find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
+find -type f -name X.hmmout|xargs -I% grep -v "#" % | \
+awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS="\t"| \
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl \
+> $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.domains
 
-# annotate 
-functionalAnnotation.py -m METADATA_FILE -db DATABASE_FILE -e EVALUE_CUTOFF -n N -p MAX_ACCEPTABLE_OVERLAP
+# extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T
+
+# Clustering
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast \
+  blacklace[01][0-9].blacklace 100 \
+  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/forClustering \
+  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/clust0.7 \
+  0.7
+  
+# concatenate clustering output
+cat $PROJECT_FOLDER/data/binning/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
+
+# mapping
+bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
+
+for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
+  16 blacklace[01][0-9].blacklace \
+  $PROJECT_FOLDER/data/assembled/aligned/megahit \
+  $PREFIX \
+  $PROJECT_FOLDER/data/assembled/megahit/$PREFIX/${PREFIX}.contigs.fa.gz \
+  $FR \
+  $RR \
+  maxindel=100 \
+  unpigz=t \
+  touppercase=t \
+  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ 
+  usemodulo=T 
+done
+
+# count overlapping features
+for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
+  blacklace[01][0-9].blacklace \
+  $BAM \
+  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/binning/$PREFIX \
+  cov
+done
+
+# count bins
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.cov" "$PREFIX.countData"
+
+# Sub binning - convert cov to tab
+for F in $P1*.cov; do
+  O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
+  awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O
+done 
+
+# parsing
+Rscript subbin_parser_v2.R reduced.txt *.tab $PREFIX.countData.sub_bins
