@@ -36,10 +36,10 @@ cat $PROJECT_FOLDER/data/binning/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_F
 bbmap.sh ref=FINAL_COMBINED.assembly.fa # usemodulo=t assembly is small no need for this
 
 # map to assembly (final flag limits Java memory to 31G)
-for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz; do
+for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  16 blacklace[01][016-9].blacklace \
+  24 blacklace[01][016-9].blacklace \
   $PROJECT_FOLDER/data/assembled/aligned \
   $PREFIX \
   $PROJECT_FOLDER/data/assembled/FINAL_COMBINED.assembly.fa \
