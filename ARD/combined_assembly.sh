@@ -1,5 +1,38 @@
-f=$(ls -m $PROJECT_FOLDER/data/corrected/B*_1.fq.gz|tr -d ' '|tr -d '\n')
+# assemble all metatranscriptome samples
+f=$(ls -m $PROJECT_FOLDER/data/cleaned/M*_1.cleane.fq.gz|tr -d ' '|tr -d '\n')
 r=$(sed 's/1\.cleaned/2.cleaned/g' <<<$f)
+megahit -o OUTPUT -t 24 --kmin-1pass --out-prefix ARD_TRANS -1 $f -2 $r --k-min=27 --k-step 10 --k-max 77
+
+# assemble all metagenomics samples with transcriptome 
+f=$(ls -m $PROJECT_FOLDER/data/cleaned/N*_1.cleane.fq.gz|tr -d ' '|tr -d '\n')
+r=$(sed 's/1\.cleaned/2.cleaned/g' <<<$f)
+megahit -o OUTPUT -t 24 --kmin-1pass --out-prefix ARD_COMB -1 $f -2 $r -r ARD_TRANS.contigd.fa --k-min=27 --k-step 10 --k-max 77
+
+# map to combined (ARD_COMB) assembly with bbmap
+bbmap.sh ref=ARD_COMB.contigs.fa.gz usemodulo=t 
+
+for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
+  24 blacklace[01][0-9].blacklace \
+  $PROJECT_FOLDER/data/aligned/COMB \
+  $PREFIX \
+  $PROJECT_FOLDER/data/assembled/ARD_COMB.contigs.fa.gz \
+  $FR \
+  $RR \
+  maxindel=100 \
+  unpigz=t \
+  touppercase=t \
+  path=$PROJECT_FOLDER/data/assembled/ \
+  usemodulo=T \ 
+  -Xmx31g
+done
+
+
+
+
+##### OLD STUFF BELOW #####
+
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c assemble -p megahit2 \
 # blacklace[01][06789].blacklace \
 10 blacklace01.blacklace \
