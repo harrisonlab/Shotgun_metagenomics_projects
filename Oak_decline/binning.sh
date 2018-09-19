@@ -59,7 +59,7 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
   blacklace[01][0-9].blacklace \
   $BAM \
-  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/binning/$PREFIX/{PREFIX}.gff \
   $PROJECT_FOLDER/data/binning/$PREFIX \
   cov
 done
@@ -74,5 +74,8 @@ for F in $P1*.cov; do
 done 
 
 # parsing
-Rscript subbin_parser_v2.R reduced.txt *.tab $PREFIX.countData.sub_bins
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_parser_v2.R \
+ $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt \
+ $PROJECT_FOLDER/data/binning/$PREFIX/*.tab 
+ $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.countData.sub_bins
 
