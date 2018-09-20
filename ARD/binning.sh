@@ -6,9 +6,9 @@ PREFIX=COMBINED # and etc.
 # identify pfam domains in assemblies
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
  1 25 $PROJECT_FOLDER/data/assembled \
- FINAL_COMBINED.assembly.fa \
+ ARD_COMB.contigs.fa.gz \
  ~/pipelines/common/resources/pfam/Pfam-A.hmm \
- -e 1e-05
+ -e 1e-03
 
 # concatenate annotation output
 find -type f -name X.gff|head -n1|xargs -I% head -n1 % >$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.gff
