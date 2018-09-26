@@ -26,8 +26,8 @@ qq    <- lapply(list.files(".","*",full.names=T),function(x) {fread(x)})
 names <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",list.files(".","*",full.names=F,recursive=F))
 
 # apply names to appropriate list columns (enables easy joining of all count tables)
-qq    <- lapply(seq(1:length(qq)),function(i) {X<-qq[[i]];colnames(X)[2] <- names[i];return(X)})
-
+lapply(seq(1:length(qq)),function(i) setnames(qq[[i]],"V2",names[i]))
+  
 # merge count tables into single table
 countData <- Reduce(function(...) {merge(..., all = TRUE)}, qq) # data table method (returns data table)
 #countData    <- qq %>% purr::reduce(full_join,by="V1") # plyr method (returns tibble - but not always...)
