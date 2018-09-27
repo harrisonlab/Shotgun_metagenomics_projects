@@ -2,9 +2,9 @@ library(data.table)
 library(tidyverse)
 library(metafuncs)
 
-filt <- "grep DDE_Tnp_1_4"
+filt <- "RVT_1"
 files <- list.files(".",".*tab",full.names=F)
-qq <- lapply(files,function(x) {fread(paste(filt,x))})
+qq <- lapply(files,function(x) {fread(paste("grep",filt,x))})
 
 names <- sub("\\.tab","",files)
 invisible(lapply(seq(1:length(qq)),function(i) {setnames(qq[[i]],"V2",names[i])}))
@@ -25,8 +25,8 @@ apply(countData[,-1],2,function(x) {sum(x>0)})
 DT_S <- data.table(Symptom=rowMeans(countData[,as.data.frame(colData[V6=="Symptom","V2",with=F])[,1],with=F]))
 DT_H <- data.table(Healthy=rowMeans(countData[,as.data.frame(colData[V6=="Healthy","V2",with=F])[,1],with=F]))
 DT <- melt(data.table(DT_H,DT_S))
-DT[,value:=log10(value)]
-ggplot(DT, aes(x=value, colour = variable)) + stat_ecdf()
+minsize <- 10
+ggplot(DT[value>=minsize,], aes(x=value, colour = variable)) + stat_ecdf()
 
 
 # plot something else
