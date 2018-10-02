@@ -12,15 +12,12 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
 
 # concatenate annotation output
 find -type f -name X.gff|head -n1|xargs -I% head -n1 % >$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.gff
-find -type f -name X.gff|xargs -I% grep -v "##" % >>$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.gff
-find -type f -name X.pep|xargs -I% cat % >$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.pep
-# find -type f -name X.hmmout|head -n1|xargs -I% head -n3 % >$PREFIX.hmmout   
-# find -type f -name X.hmmout|xargs -I% grep -v "#" % >>$PREFIX.hmmout
-# find -type f -name X.hmmout|head -n1|xargs -I% tail -n10 % >>$PREFIX.hmmout
-find -type f -name X.hmmout|xargs -I% grep -v "#" % | \
+find -type f -name X.gff|xargs -I% grep -v "##" % >>$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.gff &
+find -type f -name X.pep|xargs -I% cat % >$PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.pep &
+find -type f -name X.hmmout|xargs -I% grep -v "#" % |tee $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.hmmout |
 awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS="\t"| \
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl \
-> $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.domains
+> $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.domains &
 
 # extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T
