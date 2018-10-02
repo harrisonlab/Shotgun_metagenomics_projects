@@ -47,8 +47,8 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
   maxindel=100 \
   unpigz=t \
   touppercase=t \
-  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ 
-  usemodulo=T 
+  path=$PROJECT_FOLDER/data/assembled/megahit/$PREFIX/ \
+  usemodulo=t
 done
 
 # count overlapping features
