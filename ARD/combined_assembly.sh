@@ -11,10 +11,10 @@ megahit -o OUTPUT -t 24 --kmin-1pass --out-prefix ARD_COMB -1 $f -2 $r -r ARD_TR
 # map to combined (ARD_COMB) assembly with bbmap
 bbmap.sh ref=ARD_COMB.contigs.fa.gz usemodulo=t 
 
-for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
+for FR in $PROJECT_FOLDER/data/cleaned/N*_1.cleaned.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  24 blacklace[01][0-9].blacklace \
+  24 blacklace11.blacklace \
   $PROJECT_FOLDER/data/aligned/COMB \
   $PREFIX \
   $PROJECT_FOLDER/data/assembled/ARD_COMB.contigs.fa.gz \
@@ -24,11 +24,26 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
   unpigz=t \
   touppercase=t \
   path=$PROJECT_FOLDER/data/assembled/ \
-  usemodulo=T \ 
-  -Xmx31g
+  usemodulo=t 
 done
 
+# Pseudo mapping of RNA samples
+salmon index ...
 
+for FR in $PROJECT_FOLDER/data/cleaned/M*_1.cleaned.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  OUTDIR=$(echo $FR|awk -F"/" '{print $NF}'|sed 's/_.*//')
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p salmon \
+  24 blacklace11.blacklace \
+  /data2/scratch2/deakig/SALMON_COMB \
+  $PROJECT_FOLDER/data/counts/$OUTDIR \
+  $FR \
+  $RR \
+  --numBootstraps 1000 \
+  --dumpEq \
+  --seqBias \
+  --gcBias
+done  
 
 
 ##### OLD STUFF BELOW #####
