@@ -33,13 +33,14 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast 
 cat $PROJECT_FOLDER/data/binning/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
 
 # create bbmap assembly reference
-bbmap.sh ref=FINAL_COMBINED.assembly.fa # usemodulo=t assembly is small no need for this
+bbmap.sh ref=ARD_COMB.contigs.fa.gz usemodulo=t 
 
-# map to assembly (final flag limits Java memory to 31G)
+# map to assembly (large assembly ace11 only - or 1 with less processors)
+# REMEMBER: SET PREFIX (though it's not used)
 for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  24 blacklace[01][016-9].blacklace \
+  24 blacklace11.blacklace \
   $PROJECT_FOLDER/data/assembled/aligned \
   $PREFIX \
   $PROJECT_FOLDER/data/assembled/FINAL_COMBINED.assembly.fa \
@@ -48,8 +49,8 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.cleaned.fq.gz; do
   maxindel=100 \
   unpigz=t \
   touppercase=t \
-  path=$PROJECT_FOLDER/data/assembled \
-  -Xmx31g
+  usemodulo=t \
+  path=$PROJECT_FOLDER/data/assembled
 done
 
 # count overlapping features
