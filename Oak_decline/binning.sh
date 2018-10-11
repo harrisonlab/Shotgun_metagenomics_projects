@@ -20,7 +20,7 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl \
 > $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.domains &
 
 # extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
-Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T &
 
 # Clustering
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast \
@@ -52,13 +52,12 @@ for FR in $PROJECT_FOLDER/data/fastq/$P1*_1.fq.gz; do
 done
 
 # count overlapping features
-for BAM in $PROJECT_FOLDER/data/assembled/aligned/megahit/$P1*.bam; do
+for BAM in $PROJECT_FOLDER/data/aligned/$P1*.bam; do
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c coverage -p bam_count \
   blacklace[01][0-9].blacklace \
   $BAM \
-  $PROJECT_FOLDER/data/binning/$PREFIX/{PREFIX}.gff \
-  $PROJECT_FOLDER/data/binning/$PREFIX \
-  cov
+  $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/binning/$PREFIX/map
 done
 
 # count bins
