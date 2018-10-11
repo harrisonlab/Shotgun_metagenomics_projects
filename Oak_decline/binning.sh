@@ -19,8 +19,11 @@ awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl \
 > $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.domains &
 
-# extract sub bins from proteins file with subbin_fasta_extractor.R - last two args control memory usage (and exection time)
-Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T &
+# extract sub bins from proteins file with subbin_fasta_extractor.R - last three args control memory usage (and exection time)
+# 100 = no. of chunks to cut the protein file into (larger will reduce memory footprint)
+# T = use parallel processing 
+# 8 = no. cores for parallel processing
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_fasta_extractor.R $PREFIX.domains $PREFIX.pep "${PREFIX}_clustering/forClustering" 100 T 8 &
 
 # Clustering
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast \
