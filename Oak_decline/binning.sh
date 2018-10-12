@@ -79,7 +79,7 @@ for BAM in $PROJECT_FOLDER/data/aligned/$P1*.bam; do
   $PROJECT_FOLDER/data/binning/$PREFIX/map
 done
 
-# count bins
+# count bins (depricated - parsing will do this now)
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.cov" "$PREFIX.countData"
 
 # Sub binning - convert cov to tab
@@ -92,6 +92,6 @@ done
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_parser_v2.R \
  $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt \
  $PROJECT_FOLDER/data/binning/$PREFIX/map \
- $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.countData.sub_bins \
+ $PROJECT_FOLDER/analysis/$PREFIX \
  10 &
 
