@@ -33,7 +33,23 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast 
   0.7
   
 # concatenate clustering output
+# NOTE FOR SELF - check output is in new format otherwise run the awk script instead
 cat $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
+
+#### RUN ONLY IF CLUSTERING USED OLD OUTPUT (Attingham, Bigwood & Langdale)  ####
+awk -F"\t" '($1~/[HS]/){print $2, $9, $10}' $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/clust0.7/*.uc| \
+awk -F" " '{
+  sub(/_[0-9]+$/,"",$2);
+  sub(/_[0-9]+$/,"",$6);
+  A=$2"_"$3"_"$4"_"$5;
+  if($6~/\*/) {
+    B=A
+  } else{
+    B=$6"_"$7"_"$8"_"$9
+  };
+  print A,B
+}' OFS="\t" > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
+
 
 # mapping
 bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
@@ -75,7 +91,7 @@ done
 # parsing
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_parser_v2.R \
  $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt \
- $PROJECT_FOLDER/data/binning/$PREFIX/map/*.tab \
+ $PROJECT_FOLDER/data/binning/$PREFIX/map \
  $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.countData.sub_bins \
  10 &
 
