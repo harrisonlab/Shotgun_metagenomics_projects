@@ -73,4 +73,4 @@ for F in $P1*.cov; do
 done 
 
 # get sub bin counts
-Rscript subbin_parser_v2.R reduced.txt *.tab $PREFIX.countData.sub_bins
+Rscript subbin_parser_v2.R reduced.txt . $PREFIX.countData.sub_bins
