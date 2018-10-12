@@ -19,7 +19,7 @@ awk -F" " '($21~/^[0-9]+$/) && ($20~/^[0-9]+$/) {print $4,$1,$20,$21,$3,$7}' OFS
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_domain_extractor.pl \
 > $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.domains &
 
-# extract sub bins from proteins file with subbin_fasta_extractor.R - last three args control memory usage (and exection time)
+# extract domains from proteins file with subbin_fasta_extractor.R - last three args control memory usage (and exection time)
 # 100 = no. of chunks to cut the protein file into (larger will reduce memory footprint)
 # T = use parallel processing 
 # 8 = no. cores for parallel processing
@@ -33,7 +33,7 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast 
   0.7
   
 # concatenate clustering output
-cat $PROJECT_FOLDER/data/binning/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
+cat $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
 
 # mapping
 bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
@@ -67,14 +67,15 @@ done
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." "$P1.*\\.cov" "$PREFIX.countData"
 
 # Sub binning - convert cov to tab
-for F in $P1*.cov; do
+for F in *.cov; do
   O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
-  awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O
+  awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O &
 done 
 
 # parsing
 Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_parser_v2.R \
  $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt \
- $PROJECT_FOLDER/data/binning/$PREFIX/*.tab 
- $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.countData.sub_bins
+ $PROJECT_FOLDER/data/binning/$PREFIX/map/*.tab \
+ $PROJECT_FOLDER/data/binning/$PREFIX/$PREFIX.countData.sub_bins \
+ 10 &
 
