@@ -8,12 +8,12 @@ library(tidyverse)
 # library(devtools)
 # install_github("eastmallingresearch/Metabarcoding_pipeline/scripts") (RUN ONCE)
 library(metafuncs)
-register(MulticoreParam(12)) # watch this as each process will take a copy the dds object - could use a lot of memory for sub_bins
+register(MulticoreParam(4)) # watch this as each process will take a copy the dds object - could use a lot of memory for sub_bins
 # MultiCore actually shares the memory between parent and worker processes. But, unfortunatly the memory gets copied on R scheduled garbage collection. Annoying
 #register(SnowParam(12))# No better - will just have to run on a high memory node (needs ~50G for Langdale sub_bin processing - with multiprocessing)
 
-SITE<-c("CHESTNUTS","LANGDALE","BIGWOOD","ATTINGHAM","GT_MONK")
-SITE <- SITE[2]
+SITE<-c("ATTINGHAM","BIGWOOD","CHESTNUTS","GT_MONK","LANGDALE","SPECULATION","WINDING")
+SITE <- SITE[1]
 #===============================================================================
 #       Load data
 #===============================================================================
@@ -35,11 +35,13 @@ countData <- Reduce(function(...) {merge(..., all = TRUE)}, qq) # data table met
 ### count matrix (bins)
 countData <- fread(paste0(SITE,".countData"))
 setnames(countData,names(countData),sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData)))
-setnames(countData,"Domain","PFAM_NAME")
+setnames(countData,"DOMAINS","PFAM_NAME")
 
+# get number of reads mapped to domains       
+print(as.data.frame(colSums(countData[,-1])))
 
 ### sub bins
-countData <- fread(paste0(SITE,".countData.sub_bins"))
+countData <- fread(paste0(SITE,".sub_bins.countData"))
 setnames(countData,names(countData),sub("_L","_",names(countData)))
 countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN_NAME)]
 
@@ -57,7 +59,7 @@ pfam_go <- fread("~/pipelines/common/resources/mappings/pfam_go_map",header=F)
 # map bins to pfam and go terms
 mapping_pfam <- annotation[countData[,c(1,ncol(countData)),with=F],on="PFAM_NAME"]
 
-mapping_go   <- mapping_pfam
+mapping_go   <- copy(mapping_pfam)
 mapping_go$ACC <- sub("\\..*","",mapping_go$ACC)
 mapping_go <- data.table(left_join(mapping_go,pfam_go,by=(c("ACC"="V1"))))
 mapping_go <- mapping_go[complete.cases(mapping_go),]
@@ -76,7 +78,9 @@ countData[, (colsToDelete) := NULL]
 
 # read in metadata
 colData   <- fread("colData")
+colData[,SampleID:=sub("_","_L",SampleID)] # but check names first - may not work for bigwood or speculation
 
+       
 #===============================================================================
 #       Pool Data/subsample
 #===============================================================================
@@ -99,9 +103,12 @@ sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
 #       Differential analysis
 #===============================================================================
 
-# remove unhelpful counts (Langdale)
+# remove unhelpful counts (Attingham/Langdale)
 dds <- dds[,dds$Status!="Sandra"]
 
+# remove ambigueos coding
+colData(dds)$Status <- sub("_","",colData(dds)$Status)
+       
 # filter out low counts (especially for subbins - there will be a lot with low counts)
 # dds <- dds[rowSums(counts(dds, normalize=T))>5,]
 
@@ -131,7 +138,7 @@ res_merge <- data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.fr
 fwrite(res_merge,"CHESTNUTS_pairs.txt",sep="\t",quote=F)
 fwrite(res_merge[padj<=0.1,],"CHESTNUTS_pairs_sig.txt",sep="\t",quote=F)
 
-# Langdale
+# Langdale/Attingham
 design <- ~Block_pair+Status # no results for ~Status model 
 LHS <- c("AOD","COD","Remission","AOD","COD","AOD")
 RHS <- c("Healthy","Healthy","Healthy","Remission","Remission","COD")
@@ -146,7 +153,6 @@ invisible(lapply(res,summary))
 res_merge <- lapply(res,function(res) {
   data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
 })
-
 
 lapply(seq_along(res_merge),function(i) {
   invisible(fwrite(res_merge[[i]],paste(SITE,LHS[i],RHS[i],"txt",sep="."),sep="\t",quote=F))
