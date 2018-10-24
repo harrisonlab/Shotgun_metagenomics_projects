@@ -20,16 +20,13 @@ SITE <- SITE[1]
 
 ####  counts tables
 # get list of count tables
-qq    <- lapply(list.files(".","*",full.names=T),function(x) {fread(x)})
-
+#qq    <- lapply(list.files(".","*",full.names=T),function(x) {fread(x)})
 # get count file names and substitute to required format
-names <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",list.files(".","*",full.names=F,recursive=F))
-
+#names <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",list.files(".","*",full.names=F,recursive=F))
 # apply names to appropriate list columns (enables easy joining of all count tables)
-lapply(seq(1:length(qq)),function(i) setnames(qq[[i]],"V2",names[i]))
-  
+#lapply(seq(1:length(qq)),function(i) setnames(qq[[i]],"V2",names[i]))
 # merge count tables into single table
-countData <- Reduce(function(...) {merge(..., all = TRUE)}, qq) # data table method (returns data table)
+#countData <- Reduce(function(...) {merge(..., all = TRUE)}, qq) # data table method (returns data table)
 #countData    <- qq %>% purr::reduce(full_join,by="V1") # plyr method (returns tibble - but not always...)
 
 ### count matrix (bins)
@@ -57,6 +54,8 @@ pfam_go <- fread("~/pipelines/common/resources/mappings/pfam_go_map",header=F)
 # countData$BIN_ID <- paste0("BIN",seq(1,nrow(countData)))
 
 # map bins to pfam and go terms
+mapping_pfam <- annotation[countData[,1,with=F],on="PFAM_NAME"]
+
 mapping_pfam <- annotation[countData[,c(1,ncol(countData)),with=F],on="PFAM_NAME"]
 
 mapping_go   <- copy(mapping_pfam)
@@ -106,7 +105,7 @@ sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
 # remove unhelpful counts (Attingham/Langdale)
 dds <- dds[,dds$Status!="Sandra"]
 
-# remove ambigueos coding
+# remove ambiguous coding
 colData(dds)$Status <- sub("_","",colData(dds)$Status)
        
 # filter out low counts (especially for subbins - there will be a lot with low counts)
@@ -116,8 +115,8 @@ colData(dds)$Status <- sub("_","",colData(dds)$Status)
 alpha <- 0.1
 
 # the full model
-design <- ~Block_pair+Status # or
-design <- ~Status
+design <- ~Status # or
+design <- ~Block_pair+Status 
 
 # set any columns used in model to be factors (deseq should really do this internally...)
 dds$Status <- as.factor(dds$Status)
@@ -205,4 +204,18 @@ dev.off()
 mypca <- des_to_pca(dds)
 d <-t(data.frame(t(mypca$x)*mypca$percentVar))
 
-plotOrd(d,colData(dds),design="Status")
+# Anova of first 4 PC scores
+lapply(seq(1:14),function(x) {summary(aov(mypca$x[,x]~Block_pair+Status,colData(dds)))})
+
+# sum of Sum-of-squares 
+sum_squares <- t(apply(mypca$x,2,function(x) 
+  t(summary(aov(x~Pair+Condition,colData(dds)))[[1]][2]))
+)
+colnames(sum_squares) <- c("Block","Condition","residual")
+x<-t(apply(sum_squares,1,prop.table))
+perVar <- x * mypca$percentVar
+#colSums(perVar)
+colSums(perVar)/sum(colSums(perVar))*100
+
+# plot with lines joining blocks/pairs
+plotOrd(d,colData(dds),design="Status",shape="Block_pair",pointSize=2,alpha=0.75,cbPalette=T) 
