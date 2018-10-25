@@ -12,8 +12,8 @@ register(MulticoreParam(4)) # watch this as each process will take a copy the dd
 # MultiCore actually shares the memory between parent and worker processes. But, unfortunatly the memory gets copied on R scheduled garbage collection. Annoying
 #register(SnowParam(12))# No better - will just have to run on a high memory node (needs ~50G for Langdale sub_bin processing - with multiprocessing)
 
-SITE<-c("ATTINGHAM","BIGWOOD","CHESTNUTS","GT_MONK","LANGDALE","SPECULATION","WINDING")
-SITE <- SITE[1]
+SITES<-c("ATTINGHAM","BIGWOOD","CHESTNUTS","GT_MONK","LANGDALE","SPECULATION","WINDING")
+SITE <- SITES[1]
 #===============================================================================
 #       Load data
 #===============================================================================
