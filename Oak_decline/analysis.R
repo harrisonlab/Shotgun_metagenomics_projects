@@ -134,8 +134,8 @@ res <- results(dds,alpha=alpha,parallel=T)
 res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
 res_merge <- data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
 
-fwrite(res_merge,"CHESTNUTS_pairs.txt",sep="\t",quote=F)
-fwrite(res_merge[padj<=0.1,],"CHESTNUTS_pairs_sig.txt",sep="\t",quote=F)
+fwrite(res_merge,past0(SITE,"_bins.txt"),sep="\t",quote=F)
+fwrite(res_merge[padj<=0.1,],paste0(SITE,"_bins_sig.txt",sep="\t",quote=F)
 
 # Langdale/Attingham
 design <- ~Block_pair+Status # no results for ~Status model 
@@ -205,11 +205,11 @@ mypca <- des_to_pca(dds)
 d <-t(data.frame(t(mypca$x)*mypca$percentVar))
 
 # Anova of first 4 PC scores
-lapply(seq(1:14),function(x) {summary(aov(mypca$x[,x]~Block_pair+Status,colData(dds)))})
+lapply(seq(1:4),function(x) {summary(aov(mypca$x[,x]~Block_pair+Status,colData(dds)))})
 
 # sum of Sum-of-squares 
 sum_squares <- t(apply(mypca$x,2,function(x) 
-  t(summary(aov(x~Pair+Condition,colData(dds)))[[1]][2]))
+  t(summary(aov(x~Block_pair+Status,colData(dds)))[[1]][2]))
 )
 colnames(sum_squares) <- c("Block","Condition","residual")
 x<-t(apply(sum_squares,1,prop.table))
@@ -218,4 +218,4 @@ perVar <- x * mypca$percentVar
 colSums(perVar)/sum(colSums(perVar))*100
 
 # plot with lines joining blocks/pairs
-plotOrd(d,colData(dds),design="Status",shape="Block_pair",pointSize=2,alpha=0.75,cbPalette=T) 
+ggsave(paste0(SITE,"_bins.pdf"),plotOrd(d,colData(dds),design="Status",shape="Block_pair",pointSize=2,alpha=0.75,cbPalette=T) )
