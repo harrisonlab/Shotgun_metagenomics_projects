@@ -119,8 +119,8 @@ design <- ~Status # or
 design <- ~Block_pair+Status 
 
 # set any columns used in model to be factors (deseq should really do this internally...)
-dds$Status <- as.factor(dds$Status)
-dds$Block_pair <- as.factor(dds$Block_pair)
+dds$Status <- droplevels(dds$Status)
+dds$Block_pair <- droplevels(dds$Block_pair)
 
 # add full model to dds object
 design(dds) <- design
