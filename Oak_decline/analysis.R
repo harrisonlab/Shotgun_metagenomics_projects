@@ -183,19 +183,22 @@ GOdata <- new("topGOdata",ontology = "BP",allGenes = geneList,geneSel = geneSel,
 geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X>0 # increased expression
 geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X<0 # decreased expression
 
-
 resultFisher <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
 resultKS <- runTest(GOdata, algorithm = "classic", statistic = "ks")
 resultKS.elim <- runTest(GOdata, algorithm = "elim", statistic = "ks")
-
 resultKS.weight <- runTest(GOdata, algorithm = "weight01", statistic = "ks")
 
-allRes <- GenTable(GOdata, classicFisher = resultFisher,classicKS = resultKS, elimKS = resultKS.elim, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = length(GOdata@graph@nodes))
+allRes <- GenTable(GOdata, classicFisher = resultFisher,classicKS = resultKS, elimKS = resultKS.elim, ksWeighted=resultKS.weight,orderBy = "elimKS", ranksOf = "classicFisher", topNodes = length(GOdata@graph@nodes))
 over_expressed <- allRes[((allRes$Significant)/(allRes$Expected))>1,]
 
+x="Over"#x="under"
+fwrite(allRes,paste(SITE,x,"GO_RES.txt",sep="_"),sep="\t",quote=F)
 
-pdf("plot.pdf")
+pdf(paste(SITE,x,"_GO_plots.pdf",sep="_"))
+  showSigOfNodes(GOdata, score(resultFisher), firstSigNodes = 5, useInfo = 'all')
+  showSigOfNodes(GOdata, score(resultKS), firstSigNodes = 5, useInfo = 'all')
   showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes = 5, useInfo = 'all')
+  showSigOfNodes(GOdata, score(resultKS.weight), firstSigNodes = 5, useInfo = 'all')
 dev.off()
 #===============================================================================
 #       Plots and etc.
