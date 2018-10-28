@@ -134,8 +134,8 @@ res <- results(dds,alpha=alpha,parallel=T)
 res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
 res_merge <- data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
 
-fwrite(res_merge,past0(SITE,"_bins.txt"),sep="\t",quote=F)
-fwrite(res_merge[padj<=0.1,],paste0(SITE,"_bins_sig.txt",sep="\t",quote=F)
+fwrite(res_merge,paste0(SITE,"_bins.txt"),sep="\t",quote=F)
+fwrite(res_merge[padj<=0.1,],paste0(SITE,"_bins_sig.txt"),sep="\t",quote=F)
 
 # Langdale/Attingham
 design <- ~Block_pair+Status # no results for ~Status model 
