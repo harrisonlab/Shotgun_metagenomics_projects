@@ -119,8 +119,8 @@ design <- ~Status # or
 design <- ~Block_pair+Status 
 
 # set any columns used in model to be factors (deseq should really do this internally...)
-dds$Status <- droplevels(dds$Status)
-dds$Block_pair <- droplevels(dds$Block_pair)
+dds$Status <- as.factor(dds$Status)
+dds$Block_pair <- as.factor(dds$Block_pair)
 
 # add full model to dds object
 design(dds) <- design
@@ -163,13 +163,14 @@ res_merge <- lapply(res,function(res) {
 })
 
 lapply(seq_along(res_merge),function(i) {
-  invisible(fwrite(res_merge[[i]],paste(SITE,LHS[i],RHS[i],"sub_bin","txt",sep="."),sep="\t",quote=F))
+  invisible(fwrite(res_merge[[i]],paste(SITE,LHS[i],RHS[i],"status_sub_bin","txt",sep="."),sep="\t",quote=F))
 })
 
 #===============================================================================
 #       Functional analysis (sub bins) 
 #===============================================================================
 library(topGO)
+
 res_filt <- data.table(left_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_go))
 res_filt <- res_filt[complete.cases(res_filt),]
 fwrite(res_filt[,toString(V4),by=list(SUB_BIN_NAME)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
@@ -180,25 +181,28 @@ geneSel <- function(X)abs(X)<=0.05
 
 GOdata <- new("topGOdata",ontology = "BP",allGenes = geneList,geneSel = geneSel,annot = annFUN.gene2GO, gene2GO = geneID2GO,nodeSize = 5)
 
+x="Over"#x="under"
 geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X>0 # increased expression
 geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X<0 # decreased expression
 
+# weighted uses the go topology to infer statistical significance
+# ks uses strength of signal (i.e. p vlaue) for calculating GO term significance (I'm not convinced this is a good idea)
 resultFisher <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
-resultKS <- runTest(GOdata, algorithm = "classic", statistic = "ks")
-resultKS.elim <- runTest(GOdata, algorithm = "elim", statistic = "ks")
-resultKS.weight <- runTest(GOdata, algorithm = "weight01", statistic = "ks")
+#resultKS <- runTest(GOdata, algorithm = "classic", statistic = "ks")
+#resultKS.elim <- runTest(GOdata, algorithm = "elim", statistic = "ks")
+resultFisher.weight <- runTest(GOdata, algorithm = "weight01", statistic = "fisher")
 
-allRes <- GenTable(GOdata, classicFisher = resultFisher,classicKS = resultKS, elimKS = resultKS.elim, ksWeighted=resultKS.weight,orderBy = "elimKS", ranksOf = "classicFisher", topNodes = length(GOdata@graph@nodes))
-over_expressed <- allRes[((allRes$Significant)/(allRes$Expected))>1,]
+allRes <- GenTable(GOdata, classicFisher = resultFisher, fisherWeighted=resultFisher.weight,orderBy = "fisherWeighted", ranksOf = "classicFisher", topNodes = length(GOdata@graph@nodes))
+#allRes <- GenTable(GOdata, classicFisher = resultFisher,classicKS = resultKS, elimKS = resultKS.elim, ksWeighted=resultKS.weight,orderBy = "elimKS", ranksOf = "classicFisher", topNodes = length(GOdata@graph@nodes))
+# over_expressed <- allRes[((allRes$Significant)/(allRes$Expected))>1,]
 
-x="Over"#x="under"
 fwrite(allRes,paste(SITE,x,"GO_RES.txt",sep="_"),sep="\t",quote=F)
 
 pdf(paste(SITE,x,"_GO_plots.pdf",sep="_"))
   showSigOfNodes(GOdata, score(resultFisher), firstSigNodes = 5, useInfo = 'all')
-  showSigOfNodes(GOdata, score(resultKS), firstSigNodes = 5, useInfo = 'all')
-  showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes = 5, useInfo = 'all')
-  showSigOfNodes(GOdata, score(resultKS.weight), firstSigNodes = 5, useInfo = 'all')
+ # showSigOfNodes(GOdata, score(resultKS), firstSigNodes = 5, useInfo = 'all')
+ # showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes = 5, useInfo = 'all')
+  showSigOfNodes(GOdata, score(resultFisher.weight), firstSigNodes = 5, useInfo = 'all')
 dev.off()
 #===============================================================================
 #       Plots and etc.
