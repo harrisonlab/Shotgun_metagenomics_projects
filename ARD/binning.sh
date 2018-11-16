@@ -73,4 +73,4 @@ for F in $P1*.cov; do
 done 
 
 # get sub bin counts
-Rscript subbin_parser_v2.R reduced.txt . $PREFIX.countData.sub_bins 8
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_parser_v2.R reduced.txt . $PREFIX.countData.sub_bins 8
