@@ -63,8 +63,8 @@ for BAM in $PROJECT_FOLDER/data/assembled/aligned/*.bam; do
   cov
 done
 
-# count bins
-Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." ".*\\.cov" "$PREFIX.countData"
+# count bins ~ sub bin parsing will also output bin count table (this is still here as counting sub-bins is v. slow)
+# Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/cov_count.R "." ".*\\.cov" "$PREFIX.countData"
 
 # Sub binning - convert cov to tab
 for F in $P1*.cov; do
@@ -72,5 +72,5 @@ for F in $P1*.cov; do
   awk -F"\t" '{sub("ID=","",$(NF-1));OUT=$1"_"$(NF-1)"_"$4"_"$5;print OUT,$(NF-1),$4,$5,$NF}' OFS="\t" $F > $O
 done 
 
-# get sub bin counts
-Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_parser_v2.R reduced.txt . $PREFIX.countData.sub_bins 8
+# get bin and sub_bin counts (final argument is number of cores to use, can be memory hungry)
+Rscript $PROJECT_FOLDER/metagenomics_pipeline/scripts/subbin_parser_v2.R reduced.txt . $PREFIX.countData 8
