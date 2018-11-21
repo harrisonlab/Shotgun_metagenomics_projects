@@ -18,18 +18,12 @@ SITE <- SITES[1]
 #       Load data
 #===============================================================================
 
-####  counts tables
-# get list of count tables
-#qq    <- lapply(list.files(".","*",full.names=T),function(x) {fread(x)})
-# get count file names and substitute to required format
-#names <- sub("(_ND.*_L)([0-9]*)(.*)","_\\2",list.files(".","*",full.names=F,recursive=F))
-# apply names to appropriate list columns (enables easy joining of all count tables)
-#lapply(seq(1:length(qq)),function(i) setnames(qq[[i]],"V2",names[i]))
-# merge count tables into single table
-#countData <- Reduce(function(...) {merge(..., all = TRUE)}, qq) # data table method (returns data table)
-#countData    <- qq %>% purr::reduce(full_join,by="V1") # plyr method (returns tibble - but not always...)
+# read in pfam annotation
+annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
+setnames(annotation,"NAME","PFAM_NAME")
+pfam_go <- fread("~/pipelines/common/resources/mappings/pfam_go_map",header=F)
 
-### count matrix (bins)
+#### bins ####
 countData <- fread(paste0(SITE,".countData"))
 setnames(countData,names(countData),sub("(_ND.*_L)([0-9]*)(.*)","_\\2",names(countData)))
 setnames(countData,"DOMAINS","PFAM_NAME")
@@ -37,43 +31,31 @@ setnames(countData,"DOMAINS","PFAM_NAME")
 # get number of reads mapped to domains       
 print(as.data.frame(colSums(countData[,-1])))
 
-### sub bins
-countData <- fread(paste0(SITE,".sub_bins.countData"))
-setnames(countData,names(countData),sub("_L","_",names(countData)))
-countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN_NAME)]
-
-# read in pfam annotation
-annotation <- fread("~/pipelines/common/resources/pfam/names.txt")
-setnames(annotation,"NAME","PFAM_NAME")
-pfam_go <- fread("~/pipelines/common/resources/mappings/pfam_go_map",header=F)
-
-# drop exact duplicates (subbins only) - not needed
-#countData$NAME <- sub("_clust0.*","",countData$V1)
-#countdata <- countData[!duplicated(countData[,-1]),-"NAME"]
-# countData <- countData[!duplicated(countData[,-1]),]
-# countData$BIN_ID <- paste0("BIN",seq(1,nrow(countData)))
-
 # map bins to pfam and go terms
 mapping_pfam <- annotation[countData[,1,with=F],on="PFAM_NAME"]
 
-mapping_pfam <- annotation[countData[,c(1,ncol(countData)),with=F],on="PFAM_NAME"]
+### end bins ###
 
+
+### sub bins ###
+countData <- fread(paste0(SITE,".sub_bins.countData"))
+setnames(countData,names(countData),sub("_L","_",names(countData)))
+countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN_NAME)]
+unsetNA(countData)
+# remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
+colsToDelete <- c("V1","NAME","PFAM_NAME") 
+countData[, (colsToDelete) := NULL]
+
+mapping_pfam <- annotation[countData[,c(1,ncol(countData)),with=F],on="PFAM_NAME"]
+### end sub bins###
+
+
+# annotation
 mapping_go   <- copy(mapping_pfam)
 mapping_go$ACC <- sub("\\..*","",mapping_go$ACC)
 mapping_go <- data.table(left_join(mapping_go,pfam_go,by=(c("ACC"="V1"))))
 mapping_go <- mapping_go[complete.cases(mapping_go),]
-#bingo_out <- data.table(V1="EMPTY",V2=mapping_go[,BIN_ID],V3=mapping_go[,BIN_ID],V4=NA,V5=mapping_go[,V4],V6=NA,V7="ISS",V8="UNKNOWN",V9="C",V10="UNKNOWN",V11=mapping_go[,BIN_ID],V12="gene",V13="taxon:000",V14="20180101",V15="GD")
-#write.table(bingo_out,"gene_association.GO_XXX",col.names=F,row.names=F,quote=F,na="",sep="\t")
 
-# set NA values to 0
-#countData[is.na] <- 0
-unsetNA(countData)
-
-# remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
-#countData <- countData[,-c("V1","NAME"),with=F]
-# sub_bins only
-colsToDelete <- c("V1","NAME","PFAM_NAME") 
-countData[, (colsToDelete) := NULL]
 
 # read in metadata
 colData   <- fread("colData")
