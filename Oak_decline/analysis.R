@@ -153,11 +153,15 @@ lapply(seq_along(res_merge),function(i) {
 #===============================================================================
 library(topGO)
 
-res_filt <- data.table(left_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_go))
+# from res
+#res_filt <- data.table(left_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_go))
+# from res_merge
+res_filt <- res_merge[mapping_go,on="SUB_BIN_NAME"]
 res_filt <- res_filt[complete.cases(res_filt),]
+
 fwrite(res_filt[,toString(V4),by=list(SUB_BIN_NAME)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
 geneID2GO <- readMappings("topgo_temp")
-genes <- unique(res_filt[,c(1,3,7)]) # sub_bin_name,fc,p(adjusted)
+genes <- unique(res_filt[,c("SUB_BIN_NAME","log2FoldChange","padj")]) 
 geneList <- setNames(genes$padj*sign(genes$log2FoldChange),genes$SUB_BIN_NAME)
 geneSel <- function(X)abs(X)<=0.05
 
