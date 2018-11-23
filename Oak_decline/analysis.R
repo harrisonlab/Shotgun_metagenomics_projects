@@ -153,22 +153,33 @@ lapply(seq_along(res_merge),function(i) {
 #===============================================================================
 library(topGO)
 
-# from res
-#res_filt <- data.table(left_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_go))
-# from res_merge
+### bins ###
+res_filt <- res_merge[[1]][mapping_go,on="PFAM_NAME"]
+res_filt <- res_filt[complete.cases(res_filt),]
+fwrite(res_filt[,toString(V4),by=list(PFAM_NAME)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
+geneID2GO <- readMappings("topgo_temp")
+genes <- unique(res_filt[,c("PFAM_NAME","log2FoldChange","padj")]) 
+geneList <- setNames(genes$padj*sign(genes$log2FoldChange),genes$PFAM_NAME)
+
+
+### sub bins ###
 res_filt <- res_merge[mapping_go,on="SUB_BIN_NAME"]
 res_filt <- res_filt[complete.cases(res_filt),]
-
 fwrite(res_filt[,toString(V4),by=list(SUB_BIN_NAME)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
 geneID2GO <- readMappings("topgo_temp")
 genes <- unique(res_filt[,c("SUB_BIN_NAME","log2FoldChange","padj")]) 
 geneList <- setNames(genes$padj*sign(genes$log2FoldChange),genes$SUB_BIN_NAME)
+
+
+
 geneSel <- function(X)abs(X)<=0.05
 
 GOdata <- new("topGOdata",ontology = "BP",allGenes = geneList,geneSel = geneSel,annot = annFUN.gene2GO, gene2GO = geneID2GO,nodeSize = 5)
 
-x="Over"#x="under"
+x="Over"
 geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X>0 # increased expression
+
+x="Under"
 geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X<0 # decreased expression
 
 # weighted uses the go topology to infer statistical significance
