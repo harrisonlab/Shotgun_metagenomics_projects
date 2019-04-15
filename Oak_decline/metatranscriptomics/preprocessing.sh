@@ -42,3 +42,17 @@ for FR in $PROJECT_FOLDER/data/filtered/*_1.fq.gz.filtered.fq.gz; do
   minhits=2 \
   t=8
 done
+
+# error correct and normalise
+for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.filtered.fq.gz.cleaned.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)
+  $PROJECT_FOLDER/metatranscriptomics_pipeline/scripts/PIPELINE.sh -c normalise -p bbnorm \
+  $PROJECT_FOLDER/data/corrected \
+  $FR \
+  $RR  \
+  target=100 \
+  min=2 \
+  ecc=t \
+  passes=1 \
+  bits=16 prefilter
+done
