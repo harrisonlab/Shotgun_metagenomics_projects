@@ -56,3 +56,6 @@ for FR in $PROJECT_FOLDER/data/cleaned/*_1.fq.gz.filtered.fq.gz.cleaned.fq.gz; d
   passes=1 \
   bits=16 prefilter
 done
+
+# rename files (o.k this could have been implemeneted in each of the above scripts - maybe at some time)
+find $PROJECT_FOLDER/data -type f -n *.fq.gz|rename 's/(.*_[12]).*(\.[a-zA-Z]+\.fq\.gz$)/$1$2/'
