@@ -12,7 +12,7 @@ megahit -o OUTPUT -t 21 --kmin-1pass --out-prefix ATTINGHAM_COMB -1 $f -2 $r -r 
 cd $TMP
 cp $PROJECT_FOLDER/../metagenomics/data/assembled/megahit/LANGDALE/LANGDALE.contigs.fa.gz .
 pigz -d LANGDALE.contigs.fa.gz
-f=$(ls -m $PROJECT_FOLDER/data/corrected/A*_1.corrected.fq.gz|tr -d ' '|tr -d '\n')
+f=$(ls -m $PROJECT_FOLDER/data/corrected/L*_1.corrected.fq.gz|tr -d ' '|tr -d '\n')
 r=$(sed 's/1\.corrected/2.corrected/g' <<<$f)
 megahit -o OUTPUT -t 24 --kmin-1pass --out-prefix LANGDALE_COMB -1 $f -2 $r -r LANGDALE.contigs.fa --k-min=27 --k-step 10 --k-max 77 --tmp-dir /data/scratch/deakig/tmp/LANGDALE
 
