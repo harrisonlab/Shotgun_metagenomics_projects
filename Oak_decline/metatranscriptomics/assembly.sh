@@ -25,34 +25,34 @@ PREFIX=ATTINGHAM
 for FR in $PROJECT_FOLDER/data/fastq/A*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  16 blacklace[01][0-9].blacklace \
-  $PROJECT_FOLDER/data/assembly/aligned \
+  16 blacklace[01][1].blacklace \
+  $PROJECT_FOLDER/data/aligned \
   $PREFIX \
-  $PROJECT_FOLDER/data/assembled/$PREFIX/${PREFIX}_COMB.contigs.fa.gz \
+  $PROJECT_FOLDER/data/assembly/$PREFIX/${PREFIX}_COMB.contigs.fa.gz \
   $FR \
   $RR \
   maxindel=100 \
   unpigz=t \
   touppercase=t \
   usemodulo=t \
-  path=$PROJECT_FOLDER/data/assembled/$PREFIX
+  path=$PROJECT_FOLDER/data/assembly/$PREFIX
 done
 
 PREFIX=LANGDALE
 for FR in $PROJECT_FOLDER/data/fastq/L*_1.fq.gz; do
   RR=$(sed 's/_1/_2/' <<< $FR)
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  16 blacklace[01][0-9].blacklace \
-  $PROJECT_FOLDER/data/assembly/aligned \
+  16 blacklace[01][1].blacklace \
+  $PROJECT_FOLDER/data/aligned \
   $PREFIX \
-  $PROJECT_FOLDER/data/assembled/$PREFIX/${PREFIX}_COMB.contigs.fa.gz \
+  $PROJECT_FOLDER/data/assembly/$PREFIX/${PREFIX}_COMB.contigs.fa.gz \
   $FR \
   $RR \
   maxindel=100 \
   unpigz=t \
   touppercase=t \
   usemodulo=t \
-  path=$PROJECT_FOLDER/data/assembled/$PREFIX
+  path=$PROJECT_FOLDER/data/assembly/$PREFIX
 done
 
 
