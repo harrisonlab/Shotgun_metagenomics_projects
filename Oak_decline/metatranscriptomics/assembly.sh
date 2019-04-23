@@ -16,44 +16,6 @@ f=$(ls -m $PROJECT_FOLDER/data/corrected/L*_1.corrected.fq.gz|tr -d ' '|tr -d '\
 r=$(sed 's/1\.corrected/2.corrected/g' <<<$f)
 megahit -o OUTPUT -t 24 --kmin-1pass --out-prefix LANGDALE_COMB -1 $f -2 $r -r LANGDALE.contigs.fa --k-min=27 --k-step 10 --k-max 77 --tmp-dir /data/scratch/deakig/tmp/LANGDALE
 
-# index assemblies
-bbmap.sh ref=ATTINGHAM_COMB.contigs.fa.gz usemodulo=t
-bbmap.sh ref=LANGDALE_COMB.contigs.fa.gz usemodulo=t
-
-# map reads
-PREFIX=ATTINGHAM
-for FR in $PROJECT_FOLDER/data/fastq/A*_1.fq.gz; do
-  RR=$(sed 's/_1/_2/' <<< $FR)
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  16 blacklace[01][1].blacklace \
-  $PROJECT_FOLDER/data/aligned \
-  $PREFIX \
-  $PROJECT_FOLDER/data/assembly/$PREFIX/${PREFIX}_COMB.contigs.fa.gz \
-  $FR \
-  $RR \
-  maxindel=100 \
-  unpigz=t \
-  touppercase=t \
-  usemodulo=t \
-  path=$PROJECT_FOLDER/data/assembly/$PREFIX
-done
-
-PREFIX=LANGDALE
-for FR in $PROJECT_FOLDER/data/fastq/L*_1.fq.gz; do
-  RR=$(sed 's/_1/_2/' <<< $FR)
-  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
-  16 blacklace[01][1].blacklace \
-  $PROJECT_FOLDER/data/aligned \
-  $PREFIX \
-  $PROJECT_FOLDER/data/assembly/$PREFIX/${PREFIX}_COMB.contigs.fa.gz \
-  $FR \
-  $RR \
-  maxindel=100 \
-  unpigz=t \
-  touppercase=t \
-  usemodulo=t \
-  path=$PROJECT_FOLDER/data/assembly/$PREFIX
-done
 
 
 # single assemblies
