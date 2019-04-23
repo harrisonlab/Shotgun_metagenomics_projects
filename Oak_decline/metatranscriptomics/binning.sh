@@ -38,8 +38,23 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast 
 cat $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
 
 # mapping
-bbmap.sh ref=$PREFIX.contigs.fa.gz usemodulo=t #k=11 
+bbmap.sh ref=${PREFIX}_COMB.contigs.fa.gz usemodulo=t #k=11 
 
+for FR in $PROJECT_FOLDER/data/fastq/${P1}*_1.fq.gz; do
+  RR=$(sed 's/_1/_2/' <<< $FR)   
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c align -p bbmap \
+  16 blacklace[01][1].blacklace \
+  $PROJECT_FOLDER/data/aligned \
+  $PREFIX \
+  $PROJECT_FOLDER/data/assembly/$PREFIX/${PREFIX}_COMB.contigs.fa.gz \
+  $FR \
+  $RR \
+  maxindel=100 \
+  unpigz=t \
+  touppercase=t \
+  usemodulo=t \
+  path=$PROJECT_FOLDER/data/assembly/$PREFIX
+done
 
 # count overlapping features
 for BAM in $PROJECT_FOLDER/data/aligned/$P1*.bam; do
