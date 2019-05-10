@@ -1,7 +1,7 @@
 # set variables
 PROJECT_FOLDER=~/projects/ARD/metagenomics
-PREFIX=COMBINED # and etc.
-# P1=${PREFIX:0:1}
+PREFIX=COMB
+P1=${PREFIX:0:1}
 
 # identify pfam domains in assemblies
 $PROJECT_FOLDER/metagenomics_pipeline/scripts/fun_bin.sh \
