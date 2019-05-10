@@ -30,7 +30,7 @@ $PROJECT_FOLDER/metagenomics_pipeline/scripts/PIPELINE.sh -c cluster_super_fast 
   0.7
   
 # concatenate clustering output
-cat $PROJECT_FOLDER/data/binning/${PREFIX}_clustering/clust0.7/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
+cat $PROJECT_FOLDER/data/binning/$PREFIX/${PREFIX}_clustering/clust0.5/*.uc > $PROJECT_FOLDER/data/binning/$PREFIX/reduced.txt
 
 # create bbmap assembly reference
 bbmap.sh ref=ARD_COMB.contigs.fa.gz usemodulo=t 
