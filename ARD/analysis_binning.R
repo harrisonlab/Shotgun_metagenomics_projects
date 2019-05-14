@@ -85,12 +85,18 @@ sizeFactors(dds) <-sizeFactors(estimateSizeFactors(dds))
 # p value for FDR cutoff
 alpha <- 0.1
 
+##### PAIRED ANALYSIS #####
+dds2 <- dds
+
+# best to remove unpaired samples for this analysis (probably)
+dds <- dds[,as.logical(duplicated(dds$Pair) +  rev(duplicated(rev(dds$Pair))))]
+
 # the full model
 design <- ~Pair+Status 
 
 # set any columns used in model to be factors (deseq should really do this internally...)
 dds$Status <- as.factor(dds$Status)
-dds$Pair <- as.factor(dds$Pair)
+dds$Pair <-droplevels(dds$Pair)
 
 # add full model to dds object
 design(dds) <- design
@@ -99,7 +105,7 @@ design(dds) <- design
 dds <- DESeq(dds,parallel=T)
 
 # calculate results for default contrast (S vs H) - parallel only useful for subbins
-res <- results(dds,alpha=alpha,parallel=T)
+res <- results(dds,alpha=alpha,parallel=T,contrast=c("Status", "S","H"))
 # merge results with annotation
 res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
 res_merge <- data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
