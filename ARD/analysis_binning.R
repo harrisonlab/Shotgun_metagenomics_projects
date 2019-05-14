@@ -64,7 +64,10 @@ colData   <- fread("colData")
 # ensure colData rows and countData columns have the same order
 colData <- colData[Sample==names(countData)[-1],]
 # remove low count and control samples
-myfilter <- colData$Type=="DNA"
+type <- "DNA"
+# type <- "RNA"
+
+myfilter <- colData$Type==type
 # apply filter
 colData2 <- copy(colData[which(myfilter==T),])
 countData2 <- copy(countData[,c(T,myfilter),with=F])
@@ -106,13 +109,48 @@ dds <- DESeq(dds,parallel=T)
 
 # calculate results for default contrast (S vs H) - parallel only useful for subbins
 res <- results(dds,alpha=alpha,parallel=T,contrast=c("Status", "S","H"))
+
+## BINS ##
+
 # merge results with annotation
-res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
 res_merge <- data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
+fwrite(res_merge,paste(SITE,type,"_PAIRED_bins.txt",sep="_"),sep="\t",quote=F)
+fwrite(res_merge[padj<=0.1,],paste(SITE,type,"_PAIRED_bins_sig.txt",sep="_"),sep="\t",quote=F)
 
-fwrite(res_merge,paste0(SITE,"_bins.txt"),sep="\t",quote=F)
-fwrite(res_merge[padj<=0.1,],paste0(SITE,"_bins_sig.txt"),sep="\t",quote=F)
+## SUB-BINS ##
+res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
+# fwrite(res_merge,paste0(SITE,"_PAIRED_subbins.txt"),sep="\t",quote=F)
+fwrite(res_merge[padj<=0.1,],paste(SITE,type,"_PAIRED_subbins_sig.txt",sep="_"),sep="\t",quote=F)
 
+##### UNPAIRED ANALYSIS #####
+dds <- dds2
+
+design <- ~Status 
+
+# set any columns used in model to be factors (deseq should really do this internally...)
+dds$Status <- as.factor(dds$Status)
+dds$Pair <-as.factor(dds$Pair)
+
+# add full model to dds object
+design(dds) <- design
+
+# calculate fit - parallel only useful for subbins
+dds <- DESeq(dds,parallel=T)
+
+# calculate results for default contrast (S vs H) - parallel only useful for subbins
+res <- results(dds,alpha=alpha,parallel=T,contrast=c("Status", "S","H"))
+
+## BINS ##
+
+# merge results with annotation
+res_merge <- data.table(inner_join(data.table(PFAM_NAME=rownames(res),as.data.frame(res)),annotation))
+fwrite(res_merge,paste(SITE,type,"_UNPAIRED_bins.txt",sep="_"),sep="\t",quote=F)
+fwrite(res_merge[padj<=0.1,],paste(SITE,type,"_UNPAIRED_bins_sig.txt",sep="_"),sep="\t",quote=F)
+
+## SUB-BINS ##
+res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
+# fwrite(res_merge,paste0(SITE,"_UNPAIRED_subbins.txt"),sep="\t",quote=F)
+fwrite(res_merge[padj<=0.1,],paste(SITE,type,"_UNPAIRED_subbins_sig.txt",sep="_"),sep="\t",quote=F)
 #===============================================================================
 #       Functional analysis (sub bins) 
 #===============================================================================
