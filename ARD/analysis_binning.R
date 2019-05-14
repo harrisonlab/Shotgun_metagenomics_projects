@@ -68,6 +68,10 @@ type <- "DNA"
 # type <- "RNA"
 
 myfilter <- colData$Type==type
+
+#### RNA only ####
+# myfilter <- as.logical(myfilter * (colData$Pair<3))
+
 # apply filter
 colData2 <- copy(colData[which(myfilter==T),])
 countData2 <- copy(countData[,c(T,myfilter),with=F])
@@ -197,17 +201,17 @@ mypca <- des_to_pca(dds)
 d <-t(data.frame(t(mypca$x)*mypca$percentVar))
 
 # Anova of first 4 PC scores
-lapply(seq(1:4),function(x) {summary(aov(mypca$x[,x]~Block_pair+Status,colData(dds)))})
+lapply(seq(1:4),function(x) {summary(aov(mypca$x[,x]~Pair+Status,colData(dds)))})
 
 # sum of Sum-of-squares 
 sum_squares <- t(apply(mypca$x,2,function(x) 
-  t(summary(aov(x~Block_pair+Status,colData(dds)))[[1]][2]))
+  t(summary(aov(x~Pair+Status,colData(dds)))[[1]][2]))
 )
-colnames(sum_squares) <- c("Block","Condition","residual")
+colnames(sum_squares) <- c("Pair","Condition","residual")
 x<-t(apply(sum_squares,1,prop.table))
 perVar <- x * mypca$percentVar
 #colSums(perVar)
 colSums(perVar)/sum(colSums(perVar))*100
 
 # plot with lines joining blocks/pairs
-ggsave(paste0(SITE,"_bins.pdf"),plotOrd(d,colData(dds),design="Status",shape="Block_pair",pointSize=2,alpha=0.75,cbPalette=T) )
+ggsave(paste(SITE,type,"bins.pdf",sep="_"),plotOrd(d,colData(dds),design="Status",shape="Pair",pointSize=2,alpha=0.75,cbPalette=T) )
