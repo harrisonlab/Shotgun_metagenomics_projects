@@ -200,18 +200,24 @@ dev.off()
 mypca <- des_to_pca(dds)
 d <-t(data.frame(t(mypca$x)*mypca$percentVar))
 
-# Anova of first 4 PC scores
-lapply(seq(1:4),function(x) {summary(aov(mypca$x[,x]~Pair+Status,colData(dds)))})
+b <- "bins"
+# b<- "subbins
+sink(paste(SITE,type,b,"ANOVA.txt",sep="_"))
+ mypca$percentVar
+ # Anova of first 4 PC scores
+ lapply(seq(1:4),function(x) {summary(aov(mypca$x[,x]~Pair+Status,colData(dds)))})
 
-# sum of Sum-of-squares 
-sum_squares <- t(apply(mypca$x,2,function(x) 
-  t(summary(aov(x~Pair+Status,colData(dds)))[[1]][2]))
-)
-colnames(sum_squares) <- c("Pair","Condition","residual")
-x<-t(apply(sum_squares,1,prop.table))
-perVar <- x * mypca$percentVar
-#colSums(perVar)
-colSums(perVar)/sum(colSums(perVar))*100
-
+ # sum of Sum-of-squares 
+ sum_squares <- t(apply(mypca$x,2,function(x) 
+   t(summary(aov(x~Pair+Status,colData(dds)))[[1]][2]))
+ )
+ colnames(sum_squares) <- c("Pair","Condition","residual")
+ x<-t(apply(sum_squares,1,prop.table))
+ perVar <- x * mypca$percentVar
+ #colSums(perVar)
+ colSums(perVar)/sum(colSums(perVar))*100
+sink()
+                  
 # plot with lines joining blocks/pairs
-ggsave(paste(SITE,type,"bins.pdf",sep="_"),plotOrd(d,colData(dds),design="Status",shape="Pair",pointSize=2,alpha=0.75,cbPalette=T) )
+ggsave(paste(SITE,type,b,"PCA.pdf",sep="_"),plotOrd(d,colData(dds),design="Status",shape="Pair",pointSize=2,alpha=0.75,cbPalette=T) )
+ggsave(paste(SITE,type,b,"pc2_pc3.pdf",sep="_"),plotOrd(d,colData(dds),axes=c("PC2","PC3"),design="Status",shape="Pair",pointSize=2,alpha=0.75,cbPalette=T) )
