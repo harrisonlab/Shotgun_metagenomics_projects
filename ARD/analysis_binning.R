@@ -32,7 +32,7 @@ mapping_pfam <- annotation[countData[,1,with=F],on="PFAM_NAME"]
 ### end bins ###
 
 ### sub bins ###
-countData <- fread(paste0(SITE,".sub_bins.countData"))
+countData <- fread(paste0(SITE,".bins.countData"))
 countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN_NAME)]
 #unsetNA(countData)
 
@@ -40,7 +40,7 @@ countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BI
 mapping_pfam <- annotation[countData[,c(1,ncol(countData)),with=F],on="PFAM_NAME"]
 
 # remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
-colsToDelete <- c("V1","NAME","PFAM_NAME") 
+colsToDelete <- c("PFAM_NAME") 
 countData[, (colsToDelete) := NULL]
 
 ### end sub bins###
@@ -103,7 +103,7 @@ design <- ~Pair+Status
 
 # set any columns used in model to be factors (deseq should really do this internally...)
 dds$Status <- as.factor(dds$Status)
-dds$Pair <-droplevels(dds$Pair)
+dds$Pair <-as.factor(dds$Pair)
 
 # add full model to dds object
 design(dds) <- design
@@ -126,7 +126,14 @@ res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data
 # fwrite(res_merge,paste0(SITE,"_PAIRED_subbins.txt"),sep="\t",quote=F)
 fwrite(res_merge[padj<=0.1,],paste(SITE,type,"_PAIRED_subbins_sig.txt",sep="_"),sep="\t",quote=F)
 
-##### UNPAIRED ANALYSIS #####
+setkey(res_merge,"baseMean")
+fwrite(tail(res_merge,100),paste(SITE,type,"_PAIRED_top100__count.txt"),sep="\t",quote=F)
+
+sink(paste(SITE,type,"_diff_res.txt"))
+ summary(res)
+sink()
+
+##### UNPAIRED ANALYSIS (DNA only) #####
 dds <- dds2
 
 design <- ~Status 
@@ -155,6 +162,7 @@ fwrite(res_merge[padj<=0.1,],paste(SITE,type,"_UNPAIRED_bins_sig.txt",sep="_"),s
 res_merge <- data.table(inner_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_pfam))
 # fwrite(res_merge,paste0(SITE,"_UNPAIRED_subbins.txt"),sep="\t",quote=F)
 fwrite(res_merge[padj<=0.1,],paste(SITE,type,"_UNPAIRED_subbins_sig.txt",sep="_"),sep="\t",quote=F)
+
 #===============================================================================
 #       Functional analysis (sub bins) 
 #===============================================================================
@@ -162,17 +170,18 @@ library(topGO)
 
 res_filt <- data.table(left_join(data.table(SUB_BIN_NAME=rownames(res),as.data.frame(res)),mapping_go))
 res_filt <- res_filt[complete.cases(res_filt),]
-fwrite(res_filt[,toString(V4),by=list(SUB_BIN_NAME)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
+fwrite(res_filt[,toString(GOID),by=list(SUB_BIN_NAME)],"topgo_temp",sep="\t",row.names=F,col.names=F,quote=F)
 geneID2GO <- readMappings("topgo_temp")
 genes <- unique(res_filt[,c(1,3,7)]) # sub_bin_name,fc,p(adjusted)
 geneList <- setNames(genes$padj*sign(genes$log2FoldChange),genes$SUB_BIN_NAME)
-geneSel <- function(X)abs(X)<=0.05
+geneSel <- function(X)abs(X)<=0.1
 
 GOdata <- new("topGOdata",ontology = "BP",allGenes = geneList,geneSel = geneSel,annot = annFUN.gene2GO, gene2GO = geneID2GO,nodeSize = 5)
 
-x="Over"#x="under"
-geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X>0 # increased expression
-geneSelectionFun(GOdata) <- function(X)abs(X)<=0.05&X<0 # decreased expression
+# x="Over"
+# geneSelectionFun(GOdata) <- function(X)abs(X)<=0.1&X>0 # increased expression
+x="under"
+geneSelectionFun(GOdata) <- function(X)abs(X)<=0.1&X<0 # decreased expression
 
 # weighted uses the go topology to infer statistical significance
 # ks uses strength of signal (i.e. p vlaue) for calculating GO term significance (I'm not convinced this is a good idea)
@@ -185,9 +194,19 @@ allRes <- GenTable(GOdata, classicFisher = resultFisher, fisherWeighted=resultFi
 #allRes <- GenTable(GOdata, classicFisher = resultFisher,classicKS = resultKS, elimKS = resultKS.elim, ksWeighted=resultKS.weight,orderBy = "elimKS", ranksOf = "classicFisher", topNodes = length(GOdata@graph@nodes))
 # over_expressed <- allRes[((allRes$Significant)/(allRes$Expected))>1,]
 
-fwrite(allRes,paste(SITE,x,"GO_RES.txt",sep="_"),sep="\t",quote=F)
+fwrite(allRes,paste(SITE,type,x,"GO_RES.txt",sep="_"),sep="\t",quote=F)
 
-pdf(paste(SITE,x,"_GO_plots.pdf",sep="_"))
+# get domain list for sig GO terms
+qf <- function(GOID,res,GOdata){
+  selection<-unlist(genesInTerm(GOdata,GOID))
+  r <- res[SUB_BIN_NAME%in%selection,c(1:3,7:10)]
+  return(r[,GOID:=GOID])
+}
+test <- lapply(allRes[as.numeric(allRes$fisherWeighted)<=0.1,1],qf,res_merge,GOdata)
+#names(test) <- allRes[as.numeric(allRes$fisherWeighted)<=0.1,2]
+fwrite(do.call(rbind,lapply(test,subset,padj<=0.1)),paste(SITE,type,x,"GO_RES_DOMAINS.txt",sep="_"),sep="\t",quote=F)
+
+pdf(paste(SITE,type,x,"GO_plots.pdf",sep="_"))
   showSigOfNodes(GOdata, score(resultFisher), firstSigNodes = 5, useInfo = 'all')
  # showSigOfNodes(GOdata, score(resultKS), firstSigNodes = 5, useInfo = 'all')
  # showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes = 5, useInfo = 'all')
@@ -200,8 +219,8 @@ dev.off()
 mypca <- des_to_pca(dds)
 d <-t(data.frame(t(mypca$x)*mypca$percentVar))
 
-b <- "bins"
-# b<- "subbins
+# b <- "bins"
+b <- "subbins"
 sink(paste(SITE,type,b,"ANOVA.txt",sep="_"))
  mypca$percentVar
  # Anova of first 4 PC scores
