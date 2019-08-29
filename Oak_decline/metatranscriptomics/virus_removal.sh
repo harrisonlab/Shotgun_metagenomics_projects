@@ -32,7 +32,7 @@ grep -E "Virus|virus|Viral|viral|Virion|virion|phage|Phage" ~/pipelines/common/r
 ```(R)
 library(data.table)
 dom <- fread("LANGDALE.domains")
-pf <- fread("~/pipelines/common/resources/pfam/all_virus.txt")
+pf <- fread("~/pipelines/common/resources/pfam/all_virus.txt",header=F)
 dd <- pf[dom,on=c("V2"="V1")]
 fwrite(as.data.table(unique(sub("_[0-9]*$","",dd[complete.cases(dd),i.V2],perl=T))),"all_viral_domains.txt")
 ```
