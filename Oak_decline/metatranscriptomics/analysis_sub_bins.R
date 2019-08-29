@@ -22,7 +22,7 @@ setnames(annotation,"NAME","PFAM_NAME")
 pfam_go <- fread(paste0(home,"/pipelines/common/resources/mappings/pfam_go_map"),header=F)
 
 ### sub bins ###
-countData <- fread(paste0(SITE,".sub_bins.countData"))
+countData <- fread(paste0(SITE,".bins.countData"))
 setnames(countData,names(countData),sub("_L","_",names(countData)))
 unsetNA(countData)
 
