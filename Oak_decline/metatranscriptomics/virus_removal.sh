@@ -27,7 +27,7 @@ awk -F"\t" '{split($1,N,"_");print N[1]"_"N[2]}'} *.hits|sort|uniq > viral_pepti
 
 
 #### NEW IDEA ####
-grep -E "Virus|virus|Viral|viral|Virion|virion|phage|Phage|replicase" ~/pipelines/common/resources/pfam/names.txt > all_virus.txt
+grep -E "Virus|virus|Viral|viral|Virion|virion|phage|Phage|replicase|RdRP" ~/pipelines/common/resources/pfam/names.txt > all_virus.txt
 
 ```(R)
 library(data.table)
