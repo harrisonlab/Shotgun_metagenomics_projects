@@ -24,3 +24,15 @@ done
 
 # deduplicate results
 awk -F"\t" '{split($1,N,"_");print N[1]"_"N[2]}'} *.hits|sort|uniq > viral_peptides.txt
+
+
+#### NEW IDEA ####
+grep -E "Virus|virus|Viral|viral|Virion|virion|phage|Phage" ~/pipelines/common/resources/pfam/names.txt > all_virus.txt
+
+```(R)
+library(data.table)
+dom <- fread("LANGDALE.domains")
+pf <- fread("~/pipelines/common/resources/pfam/all_virus.txt")
+dd <- pf[dom,on=c("V2"="V1")]
+fwrite(as.data.table(unique(sub("_[0-9]*$","",dd[complete.cases(dd),i.V2],perl=T))),"all_viral_domains.txt")
+```
