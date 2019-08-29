@@ -11,6 +11,8 @@ library(metafuncs)
 register(MulticoreParam(12)) 
 SITES<-c("ATTINGHAM","LANGDALE")
 SITE <- SITES[2]
+type <- "RNA"
+b <- "subbins"
 #===============================================================================
 #       Load data
 #===============================================================================
@@ -24,13 +26,19 @@ pfam_go <- fread(paste0(home,"/pipelines/common/resources/mappings/pfam_go_map")
 ### sub bins ###
 countData <- fread(paste0(SITE,".bins.countData"))
 setnames(countData,names(countData),sub("_L","_",names(countData)))
+countData[,PFAM_NAME:=gsub("(k[0-9]+_[0-9]+_)(.*)(_[0-9]+_[0-9]+$)","\\2",SUB_BIN_NAME)]
 unsetNA(countData)
 
+### remove virus pfam ids ###
+viral <- fread(paste0("../data/binning/",SITE,"/all_viral_domains.txt"))
+countData[,V1:=gsub("(k[0-9]+_[0-9]+)(.*)(_[0-9]+_[0-9]+$)","\\1",SUB_BIN_NAME)]
+countData <- countData[!viral,on="V1"]
+
 # map countData to Pfam annotations
-mapping_pfam <- annotation[countData[,c(1,ncol(countData)),with=F],on="PFAM_NAME"]
+mapping_pfam <- annotation[countData[,c(1,ncol(countData)-1),with=F],on="PFAM_NAME"]
 
 # remove unused columns from countData (BIN_ID can be mapped to mapping_pfam)
-colsToDelete <- c(,"PFAM_NAME") 
+colsToDelete <- c("V1","PFAM_NAME") 
 countData[, (colsToDelete) := NULL]
 
 ### end sub bins###
