@@ -1,3 +1,4 @@
+```shell
 # download viral protein from ncbi
 wget ftp://ftp.ncbi.nlm.nih.gov/refseq/release/viral/viral.1.protein.faa.gz
 wget ftp://ftp.ncbi.nlm.nih.gov/refseq/release/viral/viral.2.protein.faa.gz
@@ -24,10 +25,13 @@ done
 
 # deduplicate results
 awk -F"\t" '{split($1,N,"_");print N[1]"_"N[2]}'} *.hits|sort|uniq > viral_peptides.txt
-
+```
 
 #### NEW IDEA ####
+```shell
 grep -E "Virus|virus|Viral|viral|Virion|virion|phage|Phage|replicase|RdRP" ~/pipelines/common/resources/pfam/names.txt > all_virus.txt
+```
+
 
 ```(R)
 library(data.table)
