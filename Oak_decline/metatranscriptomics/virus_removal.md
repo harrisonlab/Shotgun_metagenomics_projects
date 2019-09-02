@@ -1,3 +1,23 @@
+## Remove viral sequences
+The metatranscriptomic data is full of uninformative viral reads - it may have been best to remove these prior to building the assemblies using bbmap.
+
+### quick method
+
+The below grep searches for viral related pfam domains (probably the full set)
+```shell
+grep -E "Virus|virus|Viral|viral|Virion|virion|phage|Phage|replicase|RdRP" ~/pipelines/common/resources/pfam/names.txt > all_virus.txt
+```
+
+R code for anti-merge (sort of) of viral pfsam domains and all domains
+```(R)
+library(data.table)
+dom <- fread("LANGDALE.domains")
+pf <- fread("~/pipelines/common/resources/pfam/all_virus.txt",header=F)
+dd <- dom[pf,on=c("V1"="V2")]
+fwrite(as.data.table(unique(sub("_[0-9]*$","",dd[complete.cases(dd),V2],perl=T))),"all_viral_domains.txt")
+```
+
+### Long method 
 ```shell
 # download viral protein from ncbi
 wget ftp://ftp.ncbi.nlm.nih.gov/refseq/release/viral/viral.1.protein.faa.gz
@@ -27,16 +47,4 @@ done
 awk -F"\t" '{split($1,N,"_");print N[1]"_"N[2]}'} *.hits|sort|uniq > viral_peptides.txt
 ```
 
-#### NEW IDEA ####
-```shell
-grep -E "Virus|virus|Viral|viral|Virion|virion|phage|Phage|replicase|RdRP" ~/pipelines/common/resources/pfam/names.txt > all_virus.txt
-```
 
-
-```(R)
-library(data.table)
-dom <- fread("LANGDALE.domains")
-pf <- fread("~/pipelines/common/resources/pfam/all_virus.txt",header=F)
-dd <- dom[pf,on=c("V1"="V2")]
-fwrite(as.data.table(unique(sub("_[0-9]*$","",dd[complete.cases(dd),V2],perl=T))),"all_viral_domains.txt")
-```
