@@ -8,7 +8,7 @@ awk -F":" '{count++;if ($3>$2){d="f"}else{d="r";t=$2;$2=$3;$3=t};p=1;$3=$3+1;if(
 anvi-gen-contigs-database -f test.fa -o test.db -n "test database"  --external-gene-calls t2.out
 anvi-gen-contigs-database -f test.fa -o test.db -n "test database" --skip-gene-calling 
 
-# import ORFs into sqlite database
+# import ORFs into sqlite database (use  Control-v <TAB> for separator)
 sqlite3 -separator ' ' test.db  ".import t2.out genes_in_contigs"
 
 # extract and translate 
