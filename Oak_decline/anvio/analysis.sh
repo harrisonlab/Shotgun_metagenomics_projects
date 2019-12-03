@@ -25,3 +25,9 @@ sqlite3 -separator 'Control-v <TAB>' test.db  ".import x.import.fa gene_amino_ac
 sqlite3 test.db "select * from gene_amino_acid_sequences limit 10"
 ## update the self table to tell it we have gene calls
 sqlite3 test.db "update self set value = 1 where key = 'genes_are_called'"
+
+# add functional annotations (I have these already - will look at how to import)
+anvi-run-hmms -c test.db --num-threads 20
+anvi-run-ncbi-cogs -c test.db --num-threads 20
+
+# add alignmnet information
