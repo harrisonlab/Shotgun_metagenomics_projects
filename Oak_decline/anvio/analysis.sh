@@ -31,3 +31,17 @@ anvi-run-hmms -c test.db --num-threads 20
 anvi-run-ncbi-cogs -c test.db --num-threads 20
 
 # add alignmnet information
+## bam files - need to be sorted and indexed (eugh)
+/home/greg/emr-dstore1/Cluster/data/data2/scratch2/deakig/Oak/aligned/A723_NDME02225_HFFF7DMXX_L1.bam
+
+samtools view -h /data/data2/scratch2/deakig/Oak/aligned/A723_NDME02225_HFFF7DMXX_L1.bam|
+head -n 19345292|
+samtools sort -O bam -o sub.bam
+samtools index sub.bam
+
+head names.txt -n 5000|awk -F" " '{$1="";print $0}' > fasta
+anvi-profile -i sub.bam -c test.db -S "A723" --contigs-of-interest fasta
+
+# argh the headers need to be free from extra characters
+samtools view -h  sub.bam|sed 's/ flag.*len=[0-9]*//'|samtools view -S -b  >sub2.bam
+samtools index sub2.bam
