@@ -13,8 +13,13 @@ anvi-gen-contigs-database -f test.fa -o test.db -n "test database"  --external-g
 ## no header for second method
 anvi-gen-contigs-database -f test.fa -o test.db -n "test database" --skip-gene-calling 
 ## import ORFs into sqlite database (use  Control-v <TAB> for separator)
-sqlite3 -separator ' ' test.db  ".import test.out genes_in_contigs"
+sqlite3 -separator 'Control-v <TAB>' test.db  ".import test.out genes_in_contigs"
 ## test sql import has worked
 sqlite3 test.db "select * from genes_in_contigs limit 10"
-## extract and translate 
+## extract/translate /import
 anvi-get-sequences-for-gene-calls -c test.db -o test.prot.fa
+mkfifo mytemp
+java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq test.prot.fa -out_AA mytemp &
+tr -d '>'<mytemp|paste - - > x.import.fa
+sqlite3 -separator 'Control-v <TAB>' test.db  ".import x.import.fa gene_amino_acid_sequences"
+sqlite3 test.db "select * from gene_amino_acid_sequences limit 10"
