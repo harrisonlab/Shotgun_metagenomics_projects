@@ -23,3 +23,5 @@ java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq te
 tr -d '>'<mytemp|paste - - > x.import.fa
 sqlite3 -separator 'Control-v <TAB>' test.db  ".import x.import.fa gene_amino_acid_sequences"
 sqlite3 test.db "select * from gene_amino_acid_sequences limit 10"
+## update the self table to tell it we have gene calls
+sqlite3 test.db "update self set value = 1 where key = 'genes_are_called'"
