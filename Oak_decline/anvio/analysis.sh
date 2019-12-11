@@ -54,4 +54,4 @@ sbatch --mem-per-cpu 2000M -c 10 \
 10 /data/data2/scratch2/deakig/Oak/sorted $PREFIX /data/data2/scratch2/deakig/Oak/aligned/$f
 done
 
-# will need to remove extra characters from headers before indexing  -this will be slow
+# will need to remove extra characters from headers before indexing
