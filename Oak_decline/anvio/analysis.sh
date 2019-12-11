@@ -30,7 +30,7 @@ sqlite3 test.db "update self set value = 1 where key = 'genes_are_called'"
 anvi-run-hmms -c test.db --num-threads 20
 anvi-run-ncbi-cogs -c test.db --num-threads 20
 
-# add alignmnet information
+# add alignment information
 ## bam files - need to be sorted and indexed (eugh)
 /home/greg/emr-dstore1/Cluster/data/data2/scratch2/deakig/Oak/aligned/A723_NDME02225_HFFF7DMXX_L1.bam
 
@@ -45,3 +45,13 @@ anvi-profile -i sub.bam -c test.db -S "A723" --contigs-of-interest fasta
 # argh the headers need to be free from extra characters
 samtools view -h  sub.bam|sed 's/ flag.*len=[0-9]*//'|samtools view -S -b  >sub2.bam
 samtools index sub2.bam
+
+# sort bam files
+for f in *.bam; do
+PREFIX=$(echo $f|sed -e 's/\..*//')
+sbatch --mem-per-cpu 2000M -c 10 \
+~/pipelines/metagenomics/scripts/slurm/sub_bam_sort.sh \
+10 /data/data2/scratch2/deakig/Oak/sorted $PREFIX /data/data2/scratch2/deakig/Oak/aligned/$f
+done
+
+# will need to remove extra characters from headers before indexing  -this will be slow
