@@ -55,3 +55,9 @@ sbatch --mem-per-cpu 2000M -c 10 \
 done
 
 # will need to remove extra characters from headers before indexing
+samtools view -h A402_NDME02229_HFFF7DMXX_L1_1|sed -E 's/ flag=[0-9]* multi=[0-9]*\.[0-9]* len=[0-9]*//g'|samtools view -S -b  >A402_NDME02229_HFFF7DMXX_L1_1.bam
+
+for f in *_1; do
+samtools view -h $f|sed -E 's/ flag=[0-9]* multi=[0-9]*\.[0-9]* len=[0-9]*//g'|samtools view -S -b > $f.bam
+samtools index $f.bam
+done
