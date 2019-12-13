@@ -20,13 +20,38 @@ sqlite3 test.db "select * from genes_in_contigs limit 10"
 #anvi-get-sequences-for-gene-calls -c test.db -o test.prot.fa
 ## may be better to write my own code - the t-sql below will extract all the required info
 # then some perl to extract seq and revComp if required.
-rm mytemp1 mytemp2
-mkfifo mytemp1 mytemp2
+
+# rm mytemp1 mytemp2
+# mkfifo mytemp1 mytemp2
+# sqlite3 langdale.db 'SELECT start,stop,direction,sequence 
+# FROM genes_in_contigs 
+# LEFT JOIN contig_sequences 
+# WHERE genes_in_contigs.contig=contig_sequences.contig' |
+#perl -e '
+#my $count=1;
+#while(<>)
+#{
+#  chomp;
+#  my @x = split /\|/,$_;
+#  my $seq =substr $x[3],$x[0],($x[1]-$x[0]+1);
+#  if ($x[2] eq r) {
+#    $seq =~tr/ATCG/TAGC/;  
+#    $seq = reverse $seq;
+#  }
+#  print ">$count\n";
+#  print "$seq\n";
+#  $count++
+#}' > mytemp1 & 
+# translate 
+#java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq mytemp1 -out_AA mytemp2 &
+#tr -d '>'<mytemp2|paste - - > x.import_4.fa
+
+# the above is slow, slow,slow - I think it's the jave bit mostly
+
 sqlite3 langdale.db 'SELECT start,stop,direction,sequence 
 FROM genes_in_contigs 
 LEFT JOIN contig_sequences 
-WHERE genes_in_contigs.contig=contig_sequences.contig' |
-perl -e '
+WHERE genes_in_contigs.contig=contig_sequences.contig' | perl -e '
 my $count=1;
 while(<>)
 {
@@ -40,10 +65,9 @@ while(<>)
   print ">$count\n";
   print "$seq\n";
   $count++
-}' > mytemp1 & 
-# translate 
-java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq mytemp1 -out_AA mytemp2 &
-tr -d '>'<mytemp2|paste - - > x.import_4.fa
+}' | ~/pipelines/common/scripts/translate.pl | tr -d '>'|paste - - > x.import_4.fa
+
+
 
 sqlite3 -separator 'Control-v <TAB>' langdale.db  ".import x.import_4.fa gene_amino_acid_sequences"
 sqlite3 langdale.db "select * from gene_amino_acid_sequences limit 10"
