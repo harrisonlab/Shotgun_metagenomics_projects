@@ -25,7 +25,7 @@ mkfifo mytemp1 mytemp2
 sqlite3 langdale.db 'SELECT start,stop,direction,sequence 
 FROM genes_in_contigs 
 LEFT JOIN contig_sequences 
-WHERE genes_in_contigs.contig=contig_sequences.contig limit 10' |
+WHERE genes_in_contigs.contig=contig_sequences.contig' |
 perl -e '
 my $count=1;
 while(<>)
