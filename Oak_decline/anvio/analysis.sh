@@ -32,7 +32,7 @@ while(<>)
 {
   chomp;
   my @x = split /\|/,$_;
-  my $seq =substr $x[3],$x[0],($x[1]-$x[0]);
+  my $seq =substr $x[3],$x[0],($x[1]-$x[0]+1);
   if ($x[2] eq r) {
     $seq =~tr/ATCG/TAGC/;  
     $seq = reverse $seq;
