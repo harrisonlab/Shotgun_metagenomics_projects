@@ -16,12 +16,36 @@ anvi-gen-contigs-database -f test.fa -o test.db -n "test database" --skip-gene-c
 sqlite3 -separator 'Control-v <TAB>' test.db  ".import test.out genes_in_contigs"
 ## test sql import has worked
 sqlite3 test.db "select * from genes_in_contigs limit 10"
-## extract/translate /import
-anvi-get-sequences-for-gene-calls -c test.db -o test.prot.fa
-mkfifo mytemp
-java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq test.prot.fa -out_AA mytemp &
-tr -d '>'<mytemp|paste - - > x.import.fa
-sqlite3 -separator 'Control-v <TAB>' test.db  ".import x.import.fa gene_amino_acid_sequences"
+## extract/translate /import - the below will work but is appalingly memory hungary
+#anvi-get-sequences-for-gene-calls -c test.db -o test.prot.fa
+## may be better to write my own code - the t-sql below will extract all the required info
+# then some perl to extract seq and revComp if required.
+rm mytemp1 mytemp2
+mkfifo mytemp1 mytemp2
+sqlite3 test.db 'SELECT start,stop,direction,sequence 
+FROM genes_in_contigs 
+LEFT JOIN contig_sequences 
+WHERE genes_in_contigs.contig=contig_sequences.contig' |
+perl -e '
+my $count==1;
+while(<>)
+{
+  chomp;
+  my @x = split /\|/,$_;
+  my $seq =substr $x[3],$x[0],($x[1]-$x[0]);
+  if ($x[2] eq r) {cd
+    $seq =~tr/ATCG/TAGC/;  
+    $seq = reverse $seq;
+  }
+  print ">$count\n";
+  print "$seq\n";
+  $count++
+}' > mytemp1 & 
+# translate 
+java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq mytemp1 -out_AA mytemp2 &
+tr -d '>'<mytemp2|paste - - > x.import_4.fa
+
+sqlite3 -separator 'Control-v <TAB>' test.db  ".import x.import_4.fa gene_amino_acid_sequences"
 sqlite3 test.db "select * from gene_amino_acid_sequences limit 10"
 ## update the self table to tell it we have gene calls
 sqlite3 test.db "update self set value = 1 where key = 'genes_are_called'"
