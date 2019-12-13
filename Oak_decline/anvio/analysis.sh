@@ -22,12 +22,12 @@ sqlite3 test.db "select * from genes_in_contigs limit 10"
 # then some perl to extract seq and revComp if required.
 rm mytemp1 mytemp2
 mkfifo mytemp1 mytemp2
-sqlite3 test.db 'SELECT start,stop,direction,sequence 
+sqlite3 langdale.db 'SELECT start,stop,direction,sequence 
 FROM genes_in_contigs 
 LEFT JOIN contig_sequences 
-WHERE genes_in_contigs.contig=contig_sequences.contig' |
+WHERE genes_in_contigs.contig=contig_sequences.contig limit 10' |
 perl -e '
-my $count==1;
+my $count=1;
 while(<>)
 {
   chomp;
@@ -45,10 +45,10 @@ while(<>)
 java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq mytemp1 -out_AA mytemp2 &
 tr -d '>'<mytemp2|paste - - > x.import_4.fa
 
-sqlite3 -separator 'Control-v <TAB>' test.db  ".import x.import_4.fa gene_amino_acid_sequences"
-sqlite3 test.db "select * from gene_amino_acid_sequences limit 10"
+sqlite3 -separator 'Control-v <TAB>' langdale.db  ".import x.import_4.fa gene_amino_acid_sequences"
+sqlite3 langdale.db "select * from gene_amino_acid_sequences limit 10"
 ## update the self table to tell it we have gene calls
-sqlite3 test.db "update self set value = 1 where key = 'genes_are_called'"
+sqlite3 langdale.db "update self set value = 1 where key = 'genes_are_called'"
 
 # add functional annotations (I have these already - will look at how to import)
 anvi-run-hmms -c test.db --num-threads 20
