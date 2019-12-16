@@ -46,7 +46,7 @@ sqlite3 test.db "select * from genes_in_contigs limit 10"
 #java -jar ~/programs/bin/macse_v2.03.jar -prog translateNT2AA -gc_def 11 -seq mytemp1 -out_AA mytemp2 &
 #tr -d '>'<mytemp2|paste - - > x.import_4.fa
 
-# the above is slow, slow,slow - I think it's the jave bit mostly
+# the above is slow, slow,slow - I think it's the java bit mostly
 
 sqlite3 langdale.db 'SELECT start,stop,direction,sequence 
 FROM genes_in_contigs 
@@ -112,3 +112,30 @@ done
 
 # profile bam files 
 anvi-profile -i bam_file --min-contig-length 2000 --output-dir ./profiles --sample-name sample -c langdale.db
+
+# Taxonomy
+#sqlite3 langdale.db 'select contig,sequence,length(sequence) from contig_sequences where length(sequence)>1500 order by length(sequence) desc;'|
+sqlite3 langdale.db 'SELECT start,stop,direction,sequence,contig_sequences.contig 
+FROM genes_in_contigs 
+LEFT JOIN contig_sequences 
+WHERE genes_in_contigs.contig=contig_sequences.contig' | perl -e '
+my $count=1;
+while(<>)
+{
+  chomp;
+  my @x = split /\|/,$_;
+  my $seq =substr $x[3],$x[0],($x[1]-$x[0]+1);
+  if ($x[2] eq r) {
+    $seq =~tr/ATCG/TAGC/;  
+    $seq = reverse $seq;
+  }
+  print ">$x[4]\n";
+  print "$seq\n";
+  $count++
+}' > fortaxa.fa
+
+
+
+awk -F"|" '{print ">"$1"\n"$2}' > fortaxa.fa
+### kaiju
+kaiju-makedb -s nr_euk
