@@ -134,8 +134,7 @@ while(<>)
   $count++
 }' > fortaxa.fa
 
-
-
-awk -F"|" '{print ">"$1"\n"$2}' > fortaxa.fa
+#awk -F"|" '{print ">"$1"\n"$2}' > fortaxa.fa
 ### kaiju
 kaiju-makedb -s nr_euk
+kaiju -t nodes.dmp -f kaiju_db.fmi -i fortaxa.fa -o kaiju.out -z 10 -v
