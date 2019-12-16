@@ -109,3 +109,6 @@ for f in *_1; do
 samtools view -h $f|sed -E 's/ flag=[0-9]* multi=[0-9]*\.[0-9]* len=[0-9]*//g'|samtools view -S -b > $f.bam
 samtools index $f.bam
 done
+
+# profile bam files 
+anvi-profile -i bam_file --min-contig-length 2000 --output-dir ./profiles --sample-name sample -c langdale.db
