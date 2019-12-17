@@ -136,5 +136,6 @@ while(<>)
 
 #awk -F"|" '{print ">"$1"\n"$2}' > fortaxa.fa
 ### kaiju
-kaiju-makedb -s nr_euk
+kaiju-makedb -s nr_euk 
+# kaiju-makedb -s nr_euk --index-only -t 12 --no-download
 kaiju -t nodes.dmp -f kaiju_db.fmi -i fortaxa.fa -o kaiju.out -z 10 -v
