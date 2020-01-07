@@ -11,5 +11,21 @@ done
 
 # run metabat
 # runMetaBat.sh -i assembly.fa.gz --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 bam_files 
+A=$(for f in ../sorted/A*; do echo $f; done|tr  '\n' ' ')
+G=$(for f in ../sorted/G*; do echo $f; done|tr  '\n' ' ')
+L=$(for f in ../sorted/L*; do echo $f; done|tr  '\n' ' ')
+W=$(for f in ../sorted/W*; do echo $f; done|tr  '\n' ' ')
 
-runMetaBat.sh ATTINGHAM.fa --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 bam_files 
+
+
+runMetaBat.sh  --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 \
+~/projects/Oak_decline/metagenomics/data/assembled/megahit/ATTINGHAM/ATTINGHAM.contigs.fa $A 
+
+runMetaBat.sh  --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 \
+~/projects/Oak_decline/metagenomics/data/assembled/megahit/GTMONK/GTMONK.contigs.fa $G 
+
+runMetaBat.sh  --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 \
+~/projects/Oak_decline/metagenomics/data/assembled/megahit/LANGDALE/LANGDALE.contigs.fa $L 
+
+runMetaBat.sh  --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 \
+~/projects/Oak_decline/metagenomics/data/assembled/megahit/WINDING/WINDING.contigs.fa $W 
