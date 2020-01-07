@@ -9,14 +9,15 @@ for f in *.bam; do
  10 /data/data2/scratch2/deakig/Oak/sorted $PREFIX /data/data2/scratch2/deakig/Oak/to_sort/$f
 done
 
-# run metabat
-# runMetaBat.sh -i assembly.fa.gz --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 bam_files 
+# get list of bam files for each assembly
 A=$(for f in ../sorted/A*; do echo $f; done|tr  '\n' ' ')
 G=$(for f in ../sorted/G*; do echo $f; done|tr  '\n' ' ')
 L=$(for f in ../sorted/L*; do echo $f; done|tr  '\n' ' ')
 W=$(for f in ../sorted/W*; do echo $f; done|tr  '\n' ' ')
 
 
+# run metabat
+# runMetaBat.sh -i assembly.fa.gz --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 bam_files 
 
 runMetaBat.sh  --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 \
 ~/projects/Oak_decline/metagenomics/data/assembled/megahit/ATTINGHAM/ATTINGHAM.contigs.fa $A 
