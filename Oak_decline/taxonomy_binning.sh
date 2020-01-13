@@ -32,4 +32,5 @@ runMetaBat.sh  --unbinned -m 1500 -x 0 --minCVSum 0.5 \
 ~/projects/Oak_decline/metagenomics/data/assembled/megahit/WINDING/WINDING.contigs.fa $W &
 
 jgi_summarize_bam_contig_depths --outputDepth GTMONKdepth.txt ../sorted/G*
-metabat2 -i ~/projects/Oak_decline/metagenomics/data/assembled/megahit/GTMONK/GTMONK.contigs.fa -a GTMONKdepth.txt -o bins_dir/bin 
+metabat2  --unbinned -m 1500 -x 0 --minCVSum 0.5 \
+-i ~/projects/Oak_decline/metagenomics/data/assembled/megahit/GTMONK/GTMONK.contigs.fa -a GTMONKdepth.txt -o bins_dir/bin 
