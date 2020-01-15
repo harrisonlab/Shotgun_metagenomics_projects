@@ -71,3 +71,5 @@ kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r s
 kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i LANGDALE.kaiju.out -o LANGDALE.names.out &
 kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i WINDING.kaiju.out -o WINDING.names.out &
 
+# Get protein names from nr database
+zgrep ">.*?\[" -oP nr.gz |sed 's/..$//' > nr.names
