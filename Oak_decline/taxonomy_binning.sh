@@ -46,12 +46,6 @@ for f in bin.1.fa; do
   kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i $f -o $f.kaiju.out -z 10 -v
 done
 
-# need to concatenate the bins, with the bin name in the fasta header
-for f in bin*.fa; do
- #echo $f
- sed -i -e "s/k/$f.k/" $f
-done
-
 cat bin*.fa >ATTINGHAM.bins.fa
 cat bin*.fa >GTMONK.bins.fa
 cat bin*.fa >LANGDALE.bins.fa
@@ -61,3 +55,19 @@ kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i GTMONK.bins.fa -o GTMONK.kaiju.out -z 20 -v
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i LANGDALE.bins.fa -o LANGDALE.kaiju.out -z 20 -v
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i WINDING.bins.fa -o WINDING.kaiju.out -z 20 -v
+
+# Total taxonomy counts
+f=ATTINGHAM
+kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r phylum -o $f.phylum.tsv $f.kaiju.out &
+kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r class -o $f.class.tsv $f.kaiju.out &
+kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r order -o $f.order.tsv $f.kaiju.out &
+kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r family -o $f.family.tsv $f.kaiju.out &
+kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r genus -o $f.genus.tsv $f.kaiju.out &
+kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r species -l superkingdom,phylum,class,order,family,genus,species -o $f.species.tsv $f.kaiju.out &
+
+# This is better - add taxon names to the output
+kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i ATTINGHAM.kaiju.out -o ATTINGHAM.names.out &
+kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i GTMONK.kaiju.out -o GTMONK.names.out &
+kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i LANGDALE.kaiju.out -o LANGDALE.names.out &
+kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i WINDING.kaiju.out -o WINDING.names.out &
+
