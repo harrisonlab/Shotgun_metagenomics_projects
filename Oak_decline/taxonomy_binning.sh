@@ -81,7 +81,7 @@ sqlite3 -separator "|" nr.db ".import nr.names nr" 2>/dev/null
 #sqlite3 /data/data2/scratch2/deakig/kaiju/nr_euk/nr.db <script.sql > LANGDALE.prots.out
 # nsqlite3 has a limit on the complexity of queries - 10000 OR statements
 awk -F"\t" '{print $6}' OFS="," ATTINGHAM.kaiju.out|sed 's/.$//'|awk -F"," '{ for(i = 1; i <= NF; i++) { print "acc=\x27"$i"\x27 OR"; } }'|sed '$s/OR//'|split -l 9999
-for f in *; do 
+for f in x*; do 
  sed -i -e '$s/OR//' $f
  sed -i -e '1s/acc/SELECT * FROM nr WHERE acc/' $f
  sqlite3 /data/data2/scratch2/deakig/kaiju/nr_euk/nr.db <$f >> ATTINGHAM.prots.out
