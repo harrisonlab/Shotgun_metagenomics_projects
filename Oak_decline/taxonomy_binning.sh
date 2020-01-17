@@ -88,5 +88,16 @@ for f in x*; do
 done
 
 # then from R
-#...
+#...R
+library(tidyverse)
+library(data.table)
+dat <- fread("ATTINGHAM.names.out",fill=T,sep="\t")
+dat[,acc:=sub(",.*","",V6)]
+prot <- fread("ATTINGHAM.prots.out",header=F)
+setnames(prot,c("acc","protein"))
+prot <- unique(prot)
+dat <- prot[dat,on=c("acc==acc")]
+
+
+
 
