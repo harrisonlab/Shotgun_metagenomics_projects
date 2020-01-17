@@ -87,3 +87,6 @@ for f in x*; do
  sqlite3 /data/data2/scratch2/deakig/kaiju/nr_euk/nr.db <$f >> ATTINGHAM.prots.out
 done
 
+# then from R
+#...
+
