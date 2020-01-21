@@ -113,5 +113,17 @@ echo awk '{
 ./script.sh LANGDALE_BINS/LANGDALE.bins.fa > LANGDALE_BINS/LANGDALE.gff &
 ./script.sh WINDING_BINS/WINDING.bins.fa > WINDING_BINS/WINDING.gff &
 
+## count overlapping features
+PROJECT_FOLDER=~/projects/Oak_decline/metagenomics
+PREFIX=ATTINGHAM # and etc.
+P1=${PREFIX:0:1}
+
+for BAM in $PROJECT_FOLDER/data/aligned/$P1*; do
+  sbatch $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_bam_count.sh \
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm \
+  $BAM \
+  $PROJECT_FOLDER/data/taxonomy/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/taxonomy/$PREFIX/map
+done
 
 
