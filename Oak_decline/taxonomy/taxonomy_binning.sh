@@ -126,4 +126,15 @@ for BAM in $PROJECT_FOLDER/data/aligned/$P1*; do
   $PROJECT_FOLDER/data/taxonomy/$PREFIX/map
 done
 
+# Probably don't need all the fields in the cov output files
+for F in *.cov; do
+  O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
+  awk -F"\t" '{
+   sub("ID=","",$(NF-1));
+   sub(/fa\..*/,"fa",$(NF-1));
+   print $1,$(NF-1),$NF 
+  }' OFS="\t" $F > $O &
+done 
+
+# should be easy to merge bins from here in R
 
