@@ -105,8 +105,8 @@ echo awk '{
   if(index($0,">")){
   header=gensub(/.*\.fa\./,"","g",$0);
   bin=gensub(/>/,"ID=","1",$0);
-  if(tot){print header,"METABAT",1,tot,".","+",".",bin;tot=0}}else{tot=tot+length($0)}
-} END {print header,"METABAT",1,tot,".","+",".",bin}' OFS="\t" > script.sh
+  if(tot){print header,"METABAT","BINS",1,tot,".","+",".",bin;tot=0}}else{tot=tot+length($0)}
+} END {print header,"METABAT","BINS",1,tot,".","+",".",bin}' OFS="\t" > script.sh
 
 ./script.sh ATTINGHAM_BINS/ATTINGHAM.bins.fa > ATTINGHAM_BINS/ATTINGHAM.gff &
 ./script.sh GTMONK_BINS/GTMONK.bins.fa > GTMONK_BINS/GTMONK.gff &
@@ -119,7 +119,7 @@ PREFIX=ATTINGHAM # and etc.
 P1=${PREFIX:0:1}
 
 for BAM in $PROJECT_FOLDER/data/aligned/$P1*; do
-  sbatch $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_bam_count.sh \
+  sbatch --mem 40000 $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_bam_count.sh \
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm \
   $BAM \
   $PROJECT_FOLDER/data/taxonomy/$PREFIX/${PREFIX}.gff \
