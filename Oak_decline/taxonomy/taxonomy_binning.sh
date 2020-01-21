@@ -137,4 +137,31 @@ for F in *.cov; do
 done 
 
 # should be easy to merge bins from here in R
+library(data.table)
+# get command arguments
+#args <- commandArgs(TRUE)
+# location of files to load
+tmpdir <- "." # paste0(args[1],"/")
+# load count files
+qq <- lapply(list.files(tmpdir ,"*.tab",full.names=T),function(x) fread(x,sep="\t"))
 
+# get the sample names  
+names <- sub("_1\\.tab","",list.files(tmpdir ,"*.tab",full.names=F,recursive=F))
+
+# aggregate by domain
+qa <- lapply(qq,function(DT) DT[,sum(V3),by = V2])
+
+# apply names to appropriate list columns (enables easy joining of all count tables)
+qa <- lapply(seq(1:length(qa)),function(i) {X<-qa[[i]];colnames(X)[2] <- names[i];return(X)})
+
+# merge count tables (full join)
+countData <- Reduce(function(...) {merge(..., all = TRUE)}, qa)
+
+# rename first column
+setnames(countData,"V2","Bin")
+
+# NA to 0
+countData <- countData[,lapply(.SD, function(x) {x[is.na(x)] <- "0" ; x})]
+
+# write table
+fwrite(countData,"countData",sep="\t",quote=F,row.names=F,col.names=T)
