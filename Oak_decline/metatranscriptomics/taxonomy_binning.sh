@@ -4,7 +4,7 @@
 # sort bam files
 for f in *.bam; do
  PREFIX=$(echo $f|sed -e 's/\..*//')
- sbatch --mem-per-cpu 2000M -p medium -c 5 \
+ sbatch --mem-per-cpu 4000M -p medium -c 5 \
  ~/pipelines/metagenomics/scripts/slurm/sub_bam_sort.sh \
  5 /data/scratch/deakig/Oak/metatranscriptomics/sorted $PREFIX /data/scratch/deakig/Oak/metatranscriptomics/aligned/$f
 done
