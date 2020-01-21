@@ -165,3 +165,23 @@ countData <- countData[,lapply(.SD, function(x) {x[is.na(x)] <- "0" ; x})]
 
 # write table
 fwrite(countData,"countData",sep="\t",quote=F,row.names=F,col.names=T)
+
+
+# or not
+qa <- qq
+
+# apply names to appropriate list columns (enables easy joining of all count tables)
+qa <- lapply(seq(1:length(qa)),function(i) {X<-qa[[i]];colnames(X)[3] <- names[i];return(X)})
+
+# merge contig and bin names
+qa <- lapply(seq(1:length(qa)),function(i) {X<-qa[[i]];X[,sub_bin:=paste(V2,V1,sep=".")];X[,c("V1","V2"):=NULL];return(X)})
+
+# merge count tables (full join)
+countData <- Reduce(function(...) {merge(..., all = TRUE)}, qa)
+
+# NA to 0
+countData <- countData[,lapply(.SD, function(x) {x[is.na(x)] <- "0" ; x})]
+
+# write table
+fwrite(countData,"sub_bin.countData",sep="\t",quote=F,row.names=F,col.names=T)
+
