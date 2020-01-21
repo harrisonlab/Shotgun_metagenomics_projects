@@ -98,6 +98,20 @@ setnames(prot,c("acc","protein"))
 prot <- unique(prot)
 dat <- prot[dat,on=c("acc==acc")]
 
+# count bin hits in BAM files
+
+## Generate gff file for all bins
+echo awk '{
+  if(index($0,">")){
+  header=gensub(/.*\.fa\./,"","g",$0);
+  bin=gensub(/>/,"ID=","1",$0);
+  if(tot){print header,"METABAT",1,tot,".","+",".",bin;tot=0}}else{tot=tot+length($0)}
+} END {print header,"METABAT",1,tot,".","+",".",bin}' OFS="\t" > script.sh
+
+./script.sh ATTINGHAM_BINS/ATTINGHAM.bins.fa > ATTINGHAM_BINS/ATTINGHAM.gff &
+./script.sh GTMONK_BINS/GTMONK.bins.fa > GTMONK_BINS/GTMONK.gff &
+./script.sh LANGDALE_BINS/LANGDALE.bins.fa > LANGDALE_BINS/LANGDALE.gff &
+./script.sh WINDING_BINS/WINDING.bins.fa > WINDING_BINS/WINDING.gff &
 
 
 
