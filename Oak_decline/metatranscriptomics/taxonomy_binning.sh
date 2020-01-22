@@ -10,17 +10,18 @@ for f in *.bam; do
 done
 
 # get list of bam files for each assembly
-A=$(for f in ../sorted/A*; do echo $f; done|tr  '\n' ' ')
-L=$(for f in ../sorted/L*; do echo $f; done|tr  '\n' ' ')
+A=$(for f in $PROJECT_FOLDER/sorted/A*; do echo $f; done|tr  '\n' ' ')
+L=$(for f in $PROJECT_FOLDER/sorted/L*; do echo $f; done|tr  '\n' ' ')
 
 # run metabat
 # runMetaBat.sh -i assembly.fa.gz --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 bam_files 
+sbatch --mem=40000 -p medium $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_metabat.sh \
+$PROJECT_FOLDER/assembly/ATTINGHAM/ATTINGHAM_COMB.contigs.fa.gz \
+$PROJECT_FOLDER/sorted/ATTINGHAM $A
 
-runMetaBat.sh  --unbinned -m 1500 -x 0 --minCVSum 0.5 \
-~/projects/Oak_decline/metatranscriptomics/data/assembly/ATTINGHAM/ATTINGHAM_COMB.contigs.fa.gz $A &
-
-runMetaBat.sh  --unbinned -m 1500 -x 0 --minCVSum 0.5 \
-~/projects/Oak_decline/metatranscriptomics/data/assembly/LANGDALE/LANGDALE_COMB.contigs.fa.gz $L &
+sbatch --mem=40000 -p medium $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_metabat.sh \
+$PROJECT_FOLDER/assembly/LANGDALE/LANGDALE_COMB.contigs.fa.gz \
+$PROJECT_FOLDER/sorted/LANGDALE $L
 
 
 # Taxonomy assignment with kaiju
