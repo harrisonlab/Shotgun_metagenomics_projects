@@ -46,10 +46,13 @@ for f in bin.1.fa; do
   kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i $f -o $f.kaiju.out -z 10 -v
 done
 
+### THIS IS WRONG - need bin name
 cat bin*.fa >ATTINGHAM.bins.fa
 cat bin*.fa >GTMONK.bins.fa
 cat bin*.fa >LANGDALE.bins.fa
 cat bin*.fa >WINDING.bins.fa
+###
+
 
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i ATTINGHAM.bins.fa -o ATTINGHAM.kaiju.out -z 20 -v
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i GTMONK.bins.fa -o GTMONK.kaiju.out -z 20 -v
