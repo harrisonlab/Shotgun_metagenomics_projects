@@ -1,6 +1,11 @@
 # binning using metabat
 # pipeline needs sorted bam files
 
+PROJECT_FOLDER=~/projects/Oak_decline/metatranscriptomics
+PREFIX=LANGDALE # and etc.
+P1=${PREFIX:0:1}
+
+
 # sort bam files
 for f in *.bam; do
  PREFIX=$(echo $f|sed -e 's/\..*//')
@@ -38,8 +43,8 @@ for f in *.fa; do
  sed -e "s/>k/>${f}.k/" $f >>ATTINGHAM.bins.fa
 done
 
-kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i ATTINGHAM.bins.fa -o ATTINGHAM.kaiju.out -z 20 -v
-kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i LANGDALE.bins.fa -o LANGDALE.kaiju.out -z 20 -v
+kaiju -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -f $PROJECT_FOLDER/data/kaiju/nr_euk/kaiju_db_nr_euk.fmi -i ATTINGHAM.bins.fa -o ATTINGHAM.kaiju.out -z 20 -v &
+kaiju -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -f $PROJECT_FOLDER/data/kaiju/nr_euk/kaiju_db_nr_euk.fmi -i LANGDALE.bins.fa -o LANGDALE.kaiju.out -z 20 -v &
 
 # Total taxonomy counts
 f=ATTINGHAM
@@ -52,9 +57,7 @@ kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r species -
 
 # This is better - add taxon names to the output
 kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i ATTINGHAM.kaiju.out -o ATTINGHAM.names.out &
-kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i GTMONK.kaiju.out -o GTMONK.names.out &
 kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i LANGDALE.kaiju.out -o LANGDALE.names.out &
-kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i WINDING.kaiju.out -o WINDING.names.out &
 
 # Get protein names from nr database (sqlite is fairly quick for this sort of query)
 zgrep ">.*?\[" -oP nr.gz |sed 's/..$//'|sed 's/>//'|sed 's/MULTIGENE: //'|sed 's/ /|/' >nr.names
@@ -86,23 +89,15 @@ dat <- prot[dat,on=c("acc==acc")]
 
 # count bin hits in BAM files
 
-PROJECT_FOLDER=~/projects/Oak_decline/metatranscriptomics
-PREFIX=ATTINGHAM # and etc.
-P1=${PREFIX:0:1}
-
-
 ## Generate gff file for all bins
 
-$PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/awk_bin_to_gff.sh ATTINGHAM/ATTINGHAM.bins.fa > ATTINGHAM/ATTINGHAM.gff &
-$PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/awk_bin_to_gff.sh LANGDALE/LANGDALE.bins.fa > LANGDALE/LANGDALE.gff &
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/awk_bin_to_gff.sh < ATTINGHAM/ATTINGHAM.bins.fa > ATTINGHAM/ATTINGHAM.gff &
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/awk_bin_to_gff.sh < LANGDALE/LANGDALE.bins.fa > LANGDALE/LANGDALE.gff &
 
 ## count overlapping features
-PROJECT_FOLDER=~/projects/Oak_decline/metagenomics
-PREFIX=ATTINGHAM # and etc.
-P1=${PREFIX:0:1}
 
-for BAM in $PROJECT_FOLDER/data/aligned/$P1*; do
-  sbatch --mem 40000 $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_bam_count.sh \
+for BAM in $PROJECT_FOLDER/data/sorted/$P1*; do
+  sbatch --mem 20000 $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_bam_count.sh \
   $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm \
   $BAM \
   $PROJECT_FOLDER/data/taxonomy/$PREFIX/${PREFIX}.gff \
