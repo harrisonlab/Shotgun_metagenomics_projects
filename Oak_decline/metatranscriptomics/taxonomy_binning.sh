@@ -34,10 +34,13 @@ for f in bin.1.fa; do
   kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i $f -o $f.kaiju.out -z 10 -v
 done
 
+#### THIS IS INCORRECT
 cat bin*.fa >ATTINGHAM.bins.fa
 cat bin*.fa >GTMONK.bins.fa
 cat bin*.fa >LANGDALE.bins.fa
 cat bin*.fa >WINDING.bins.fa
+####
+
 
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i ATTINGHAM.bins.fa -o ATTINGHAM.kaiju.out -z 20 -v
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i GTMONK.bins.fa -o GTMONK.kaiju.out -z 20 -v
@@ -89,18 +92,15 @@ dat <- prot[dat,on=c("acc==acc")]
 
 # count bin hits in BAM files
 
-## Generate gff file for all bins
-echo awk '{
-  if(index($0,">")){
-  header=gensub(/.*\.fa\./,"","g",$0);
-  bin=gensub(/>/,"ID=","1",$0);
-  if(tot){print header,"METABAT","BINS",1,tot,".","+",".",bin;tot=0}}else{tot=tot+length($0)}
-} END {print header,"METABAT","BINS",1,tot,".","+",".",bin}' OFS="\t" > script.sh
+PROJECT_FOLDER=~/projects/Oak_decline/metatranscriptomics
+PREFIX=ATTINGHAM # and etc.
+P1=${PREFIX:0:1}
 
-./script.sh ATTINGHAM_BINS/ATTINGHAM.bins.fa > ATTINGHAM_BINS/ATTINGHAM.gff &
-./script.sh GTMONK_BINS/GTMONK.bins.fa > GTMONK_BINS/GTMONK.gff &
-./script.sh LANGDALE_BINS/LANGDALE.bins.fa > LANGDALE_BINS/LANGDALE.gff &
-./script.sh WINDING_BINS/WINDING.bins.fa > WINDING_BINS/WINDING.gff &
+
+## Generate gff file for all bins
+
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/awk_bin_to_gff.sh ATTINGHAM/ATTINGHAM.bins.fa > ATTINGHAM/ATTINGHAM.gff &
+$PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/awk_bin_to_gff.sh LANGDALE/LANGDALE.bins.fa > LANGDALE/LANGDALE.gff &
 
 ## count overlapping features
 PROJECT_FOLDER=~/projects/Oak_decline/metagenomics
