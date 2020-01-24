@@ -29,23 +29,17 @@ kaiju-makedb -s nr_euk
 # kaiju-makedb -s nr_euk --index-only -t 12 --no-download
 kaiju -t nodes.dmp -f kaiju_db.fmi -i fortaxa.fa -o kaiju.out -z 10 -v
 
-# bad method as has to read in index each time - slow
-for f in bin.1.fa; do
-  kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i $f -o $f.kaiju.out -z 10 -v
+
+for f in *.fa; do
+ sed -e "s/>k/>${f}.k/" $f >>LANGDALE.bins.fa
 done
 
-#### THIS IS INCORRECT
-cat bin*.fa >ATTINGHAM.bins.fa
-cat bin*.fa >GTMONK.bins.fa
-cat bin*.fa >LANGDALE.bins.fa
-cat bin*.fa >WINDING.bins.fa
-####
-
+for f in *.fa; do
+ sed -e "s/>k/>${f}.k/" $f >>ATTINGHAM.bins.fa
+done
 
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i ATTINGHAM.bins.fa -o ATTINGHAM.kaiju.out -z 20 -v
-kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i GTMONK.bins.fa -o GTMONK.kaiju.out -z 20 -v
 kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i LANGDALE.bins.fa -o LANGDALE.kaiju.out -z 20 -v
-kaiju -t ../../../kaiju/nodes.dmp -f ../../../kaiju/nr_euk/kaiju_db_nr_euk.fmi -i WINDING.bins.fa -o WINDING.kaiju.out -z 20 -v
 
 # Total taxonomy counts
 f=ATTINGHAM
