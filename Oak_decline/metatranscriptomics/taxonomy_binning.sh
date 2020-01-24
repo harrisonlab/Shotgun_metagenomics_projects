@@ -87,4 +87,89 @@ prot <- unique(prot)
 dat <- prot[dat,on=c("acc==acc")]
 
 
+# count bin hits in BAM files
 
+## Generate gff file for all bins
+echo awk '{
+  if(index($0,">")){
+  header=gensub(/.*\.fa\./,"","g",$0);
+  bin=gensub(/>/,"ID=","1",$0);
+  if(tot){print header,"METABAT","BINS",1,tot,".","+",".",bin;tot=0}}else{tot=tot+length($0)}
+} END {print header,"METABAT","BINS",1,tot,".","+",".",bin}' OFS="\t" > script.sh
+
+./script.sh ATTINGHAM_BINS/ATTINGHAM.bins.fa > ATTINGHAM_BINS/ATTINGHAM.gff &
+./script.sh GTMONK_BINS/GTMONK.bins.fa > GTMONK_BINS/GTMONK.gff &
+./script.sh LANGDALE_BINS/LANGDALE.bins.fa > LANGDALE_BINS/LANGDALE.gff &
+./script.sh WINDING_BINS/WINDING.bins.fa > WINDING_BINS/WINDING.gff &
+
+## count overlapping features
+PROJECT_FOLDER=~/projects/Oak_decline/metagenomics
+PREFIX=ATTINGHAM # and etc.
+P1=${PREFIX:0:1}
+
+for BAM in $PROJECT_FOLDER/data/aligned/$P1*; do
+  sbatch --mem 40000 $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm/sub_bam_count.sh \
+  $PROJECT_FOLDER/metagenomics_pipeline/scripts/slurm \
+  $BAM \
+  $PROJECT_FOLDER/data/taxonomy/$PREFIX/${PREFIX}.gff \
+  $PROJECT_FOLDER/data/taxonomy/$PREFIX/map
+done
+
+# Probably don't need all the fields in the cov output files
+for F in *.cov; do
+  O=$(sed 's/_.*_L/_L/' <<<$F|sed 's/_1\.cov/.tab/')
+  awk -F"\t" '{
+   sub("ID=","",$(NF-1));
+   sub(/fa\..*/,"fa",$(NF-1));
+   print $1,$(NF-1),$NF 
+  }' OFS="\t" $F > $O &
+done 
+
+# should be easy to merge bins from here in R
+library(data.table)
+# get command arguments
+#args <- commandArgs(TRUE)
+# location of files to load
+tmpdir <- "." # paste0(args[1],"/")
+# load count files
+qq <- lapply(list.files(tmpdir ,"*.tab",full.names=T),function(x) fread(x,sep="\t"))
+
+# get the sample names  
+names <- sub("_1\\.tab","",list.files(tmpdir ,"*.tab",full.names=F,recursive=F))
+
+# aggregate by domain
+qa <- lapply(qq,function(DT) DT[,sum(V3),by = V2])
+
+# apply names to appropriate list columns (enables easy joining of all count tables)
+qa <- lapply(seq(1:length(qa)),function(i) {X<-qa[[i]];colnames(X)[2] <- names[i];return(X)})
+
+# merge count tables (full join)
+countData <- Reduce(function(...) {merge(..., all = TRUE)}, qa)
+
+# rename first column
+setnames(countData,"V2","Bin")
+
+# NA to 0
+countData <- countData[,lapply(.SD, function(x) {x[is.na(x)] <- "0" ; x})]
+
+# write table
+fwrite(countData,"countData",sep="\t",quote=F,row.names=F,col.names=T)
+
+
+# or not
+qa <- qq
+
+# apply names to appropriate list columns (enables easy joining of all count tables)
+qa <- lapply(seq(1:length(qa)),function(i) {X<-qa[[i]];colnames(X)[3] <- names[i];return(X)})
+
+# merge contig and bin names
+qa <- lapply(seq(1:length(qa)),function(i) {X<-qa[[i]];X[,sub_bin:=paste(V2,V1,sep=".")];X[,c("V1","V2"):=NULL];return(X)})
+
+# merge count tables (full join)
+countData <- Reduce(function(...) {merge(..., all = TRUE)}, qa)
+
+# NA to 0
+countData <- countData[,lapply(.SD, function(x) {x[is.na(x)] <- "0" ; x})]
+
+# write table
+fwrite(countData,"sub_bin.countData",sep="\t",quote=F,row.names=F,col.names=T)
