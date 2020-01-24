@@ -15,15 +15,15 @@ D=$(for f in /data/scratch/deakig/ARD/sorted/M*; do echo $f; done|tr  '\n' ' ')
 R=$(for f in /data/scratch/deakig/ARD/sorted/N*; do echo $f; done|tr  '\n' ' ')
 B=$(for f in /data/scratch/deakig/ARD/sorted/*; do echo $f; done|tr  '\n' ' ')
 
-sbatch --mem 40000  ~/pipelines/metagenomics/scripts/slurm/sub_metabat.sh \
+sbatch -p medium --mem 40000  ~/pipelines/metagenomics/scripts/slurm/sub_metabat.sh \
 $PROJECT_FOLDER/data/assembled/ARD_COMB.contigs.fa.gz \
 $PROJECT_FOLDER/data/taxonomy/DNA $D
 
-sbatch --mem 40000  ~/pipelines/metagenomics/scripts/slurm/sub_metabat.sh \
+sbatch -p medium --mem 40000  ~/pipelines/metagenomics/scripts/slurm/sub_metabat.sh \
 $PROJECT_FOLDER/data/assembled/ARD_COMB.contigs.fa.gz \
 $PROJECT_FOLDER/data/taxonomy/RNA $R
 
-sbatch --mem 40000  ~/pipelines/metagenomics/scripts/slurm/sub_metabat.sh \
+sbatch -p medium --mem 40000  ~/pipelines/metagenomics/scripts/slurm/sub_metabat.sh \
 $PROJECT_FOLDER/data/assembled/ARD_COMB.contigs.fa.gz \
 $PROJECT_FOLDER/data/taxonomy/BOTH $B
 
