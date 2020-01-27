@@ -48,16 +48,17 @@ kaiju -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -f $PROJECT_FOLDER/data/kaiju/nr_e
 
 # Total taxonomy counts
 f=ATTINGHAM
-kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r phylum -o $f.phylum.tsv $f.kaiju.out &
-kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r class -o $f.class.tsv $f.kaiju.out &
-kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r order -o $f.order.tsv $f.kaiju.out &
-kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r family -o $f.family.tsv $f.kaiju.out &
-kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r genus -o $f.genus.tsv $f.kaiju.out &
-kaiju2table -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r species -l superkingdom,phylum,class,order,family,genus,species -o $f.species.tsv $f.kaiju.out &
+f=LANGDALE
+kaiju2table -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r phylum -o $f.phylum.tsv $f.kaiju.out &
+kaiju2table -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r class -o $f.class.tsv $f.kaiju.out &
+kaiju2table -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r order -o $f.order.tsv $f.kaiju.out &
+kaiju2table -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r family -o $f.family.tsv $f.kaiju.out &
+kaiju2table -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r genus -o $f.genus.tsv $f.kaiju.out &
+kaiju2table -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r species -l superkingdom,phylum,class,order,family,genus,species -o $f.species.tsv $f.kaiju.out &
 
 # This is better - add taxon names to the output
-kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i ATTINGHAM.kaiju.out -o ATTINGHAM.names.out &
-kaiju-addTaxonNames -t ../../../kaiju/nodes.dmp -n ../../../kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i LANGDALE.kaiju.out -o LANGDALE.names.out &
+kaiju-addTaxonNames -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i ATTINGHAM.kaiju.out -o ATTINGHAM.names.out &
+kaiju-addTaxonNames -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i LANGDALE.kaiju.out -o LANGDALE.names.out &
 
 # Get protein names from nr database (sqlite is fairly quick for this sort of query)
 zgrep ">.*?\[" -oP nr.gz |sed 's/..$//'|sed 's/>//'|sed 's/MULTIGENE: //'|sed 's/ /|/' >nr.names
