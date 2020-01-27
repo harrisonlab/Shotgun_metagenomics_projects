@@ -30,10 +30,9 @@ $PROJECT_FOLDER/sorted/LANGDALE $L
 
 
 # Taxonomy assignment with kaiju
-kaiju-makedb -s nr_euk 
+#kaiju-makedb -s nr_euk 
 # kaiju-makedb -s nr_euk --index-only -t 12 --no-download
-kaiju -t nodes.dmp -f kaiju_db.fmi -i fortaxa.fa -o kaiju.out -z 10 -v
-
+#kaiju -t nodes.dmp -f kaiju_db.fmi -i fortaxa.fa -o kaiju.out -z 10 -v
 
 for f in *.fa; do
  sed -e "s/>k/>${f}.k/" $f >>LANGDALE.bins.fa
@@ -59,6 +58,9 @@ kaiju2table -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaij
 # This is better - add taxon names to the output
 kaiju-addTaxonNames -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i ATTINGHAM.kaiju.out -o ATTINGHAM.names.out &
 kaiju-addTaxonNames -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/data/kaiju/names.dmp -r superkingdom,phylum,class,order,family,genus,species -i LANGDALE.kaiju.out -o LANGDALE.names.out &
+
+# Assign taxonomy per bin - probably best done with a perl rather than awk script
+#awk -F"\t" '{tot=($3*100)/$2;print $1,$2,$3,$tot,$NF}'
 
 # Get protein names from nr database (sqlite is fairly quick for this sort of query)
 zgrep ">.*?\[" -oP nr.gz |sed 's/..$//'|sed 's/>//'|sed 's/MULTIGENE: //'|sed 's/ /|/' >nr.names
