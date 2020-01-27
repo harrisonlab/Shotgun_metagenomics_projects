@@ -61,6 +61,9 @@ kaiju-addTaxonNames -t $PROJECT_FOLDER/data/kaiju/nodes.dmp -n $PROJECT_FOLDER/d
 
 # Assign taxonomy per bin - probably best done with a perl rather than awk script
 #awk -F"\t" '{tot=($3*100)/$2;print $1,$2,$3,$tot,$NF}'
+# The below script works, but is slow. If it's days slow I'll reqrite it to use the cluster.
+~/pipelines/metagenomics/scripts/slurm/kaiju_bin_taxonomy.pl LANGDALE.kaiju.out LANGDALE.bin.taxonomy $PROJECT_FOLDER
+
 
 # Get protein names from nr database (sqlite is fairly quick for this sort of query)
 zgrep ">.*?\[" -oP nr.gz |sed 's/..$//'|sed 's/>//'|sed 's/MULTIGENE: //'|sed 's/ /|/' >nr.names
