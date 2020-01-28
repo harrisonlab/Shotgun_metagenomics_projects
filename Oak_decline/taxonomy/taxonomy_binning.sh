@@ -4,9 +4,9 @@
 # sort bam files
 for f in *.bam; do
  PREFIX=$(echo $f|sed -e 's/\..*//')
- sbatch --mem-per-cpu 2000M -c 10 \
+ sbatch -p medium --mem-per-cpu 4500M -c 8 \
  ~/pipelines/metagenomics/scripts/slurm/sub_bam_sort.sh \
- 10 /data/data2/scratch2/deakig/Oak/sorted $PREFIX /data/data2/scratch2/deakig/Oak/to_sort/$f
+ 8 /data/data2/scratch2/deakig/Oak/sorted $PREFIX /data/data2/scratch2/deakig/Oak/to_sort/$f
 done
 
 # get list of bam files for each assembly
@@ -15,6 +15,9 @@ G=$(for f in ../sorted/G*; do echo $f; done|tr  '\n' ' ')
 L=$(for f in ../sorted/L*; do echo $f; done|tr  '\n' ' ')
 W=$(for f in ../sorted/W*; do echo $f; done|tr  '\n' ' ')
 
+B=$(for f in ../sorted/B*; do echo $f; done|tr  '\n' ' ')
+C=$(for f in ../sorted/C*; do echo $f; done|tr  '\n' ' ')
+S=$(for f in ../sorted/S*; do echo $f; done|tr  '\n' ' ')
 
 # run metabat
 # runMetaBat.sh -i assembly.fa.gz --unbinned -o assembly_name -m 1500 -x 0 --minCVSum 0.5 bam_files 
